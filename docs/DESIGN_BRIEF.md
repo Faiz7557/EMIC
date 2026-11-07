@@ -30,7 +30,7 @@ Tiga kesan yang harus tertinggal pada juri:
 | Data check | Daftar masalah data | **Status bukti** |
 | Demo terpandu | Layar redup dan bingkai target | **Sama**, enam langkah |
 | Sudut kanan atas | Sakelar EN dan ID | **Lencana SIMULASI** |
-| Sudut kanan bawah | Tombol Ask Sparekit | **Tombol Demo 1 menit** |
+| Sudut kanan bawah | Tombol Ask Sparekit | **Tidak ada.** Tombol Demo 1 menit pindah ke bilah atas agar tidak menutup panel |
 | Sudut kiri bawah | Hitung mundur turnaround | **Kartu sesi:** jam simulasi, jumlah kejadian, audio keluar 0 byte |
 | Peran | Pemilih akun | **Pemilih peran** di atas panel kanan Ruang tunggu |
 | Warna aksen | Oranye mesin | **Teal SUAR** |

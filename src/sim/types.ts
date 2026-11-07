@@ -13,7 +13,7 @@ export interface SimConfig {
   rebuzzMin: number;   // 3
   pauseMin: number;    // 15
   mergeMs: number;     // 300
-  ambiguousDb: number; // 3
+  ambiguousDb: number; // 1.5
   maxRangeM: number;   // 4
   startClockMin: number; // 540, artinya 09.00
 }

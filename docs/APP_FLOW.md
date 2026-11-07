@@ -176,7 +176,7 @@ Kalimat pembuka diperbarui langsung dari nilai yang tampil. Catatan tetap: "Hasi
 
 **Kalimat pembuka:** "Simulator ini memperagakan rancangan. Simulator ini tidak membuktikan bahwa alat mampu mendengar batuk."
 
-Halaman baca-saja berisi: tabel janji, empat gerbang uji, legenda status, daftar asumsi A1 sampai A6, dan rujukan bab proposal.
+Halaman baca-saja berisi: tabel janji, empat gerbang uji, legenda status, daftar asumsi A1 sampai A4, A6, dan A7, dan rujukan bab proposal.
 
 ## 6. Demo terpandu
 

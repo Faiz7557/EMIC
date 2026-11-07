@@ -378,6 +378,6 @@ Uji tidak boleh dilonggarkan untuk meloloskan implementasi. Golden hanya boleh d
 | Keputusan | Batas | Kapan ditingkatkan |
 |---|---|---|
 | Satu ruang dengan 4 simpul | Tidak ada editor denah | Bila final butuh denah puskesmas nyata |
-| Model medan bebas | Gema tidak dimodelkan, sama dengan proposal | Setelah pengukuran G3 |
+| Model medan bebas | Proposal memodelkan gema, simulator tidak (A7) | Setelah pengukuran G3 |
 | Status hilang saat muat ulang | Tidak ada simpanan sesi | Tidak perlu untuk demo |
 | Monte Carlo di utas utama | Dapat tersendat pada perangkat sangat lemah | Pindah ke Web Worker bila >200 ms |
