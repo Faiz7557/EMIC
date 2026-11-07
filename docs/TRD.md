@@ -270,7 +270,7 @@ Port baris per baris dari `reference/analysis.py`. Jangan menulis ulang rumus da
 |---|---|---|
 | `firstTrigger(times, N, T)` | `first_trigger` | Eksak |
 | `falseAlarmPerHour(lamH, N, T, zones = 4)` | `false_alarm_per_hour` | Eksak terhadap `grid.*.fa_room_h`, toleransi 1e-9 |
-| `doseFraction(trig, wait = 60, react = 5, maskEff = 0.56)` | `dose_fraction` | Eksak terhadap `delay_curve`, `best_case_dose_red` |
+| `doseFraction(trig, wait = 60, react = 5, maskEff = 0.56)` | `dose_fraction`, mengembalikan sisa dosis | `1 - doseFraction(t)` eksak terhadap `delay_curve` dan `best_case_dose_red` |
 | `wrRisk(q, ach, minutes, V = 150, p = 0.48)` | `wr_risk` | Eksak terhadap `wr_q82_ach3`, yang disimpan dalam satuan per 100 orang |
 | `simulate(opts)` | `simulate` | Monte Carlo, toleransi 1,5 poin persentase |
 | `twoTier(opts)` | `two_tier` di dalam `main` | Monte Carlo, toleransi 1,5 poin persentase |
