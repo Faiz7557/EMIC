@@ -1,4 +1,4 @@
-import { attribute, NODE_XY } from "./attribution";
+import { attribute, DEFAULT_AMBIGUOUS_DB, NODE_XY } from "./attribution";
 import { encodePacket } from "./packet";
 import {
   ZONES, type Endpoint, type LogKind, type NodeStatus, type PacketKind,
@@ -7,7 +7,7 @@ import {
 
 export const DEFAULT_CONFIG: SimConfig = {
   n2: 2, t2Min: 15, t1HoldMin: 15, rebuzzMin: 3, pauseMin: 15,
-  mergeMs: 300, ambiguousDb: 3, maxRangeM: 4, startClockMin: 540,
+  mergeMs: 300, ambiguousDb: DEFAULT_AMBIGUOUS_DB, maxRangeM: 4, startClockMin: 540,
 };
 
 function initialZone(): ZoneState {

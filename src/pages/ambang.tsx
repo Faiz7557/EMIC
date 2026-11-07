@@ -1,6 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from "react";
 import { analysis } from "../data/analysis";
-import type { Claim } from "../data/claims";
+import { CLAIMS, type Claim } from "../data/claims";
 import { copy } from "../data/copy";
 import { falseAlarmPerHour, LAM_F, SENS, simulate, twoTier } from "../sim/model";
 import { ClaimTag } from "../ui/claim-tag";
@@ -15,6 +15,7 @@ const presets = [
   { label: "Abstrak ≥3/10", N: 3, T: 10 },
   { label: "Proposal ≥2/15", N: 2, T: 15 },
   { label: "1 batuk saja", N: 1, T: 15 },
+  { label: "Mode bising ≥3/15", N: 3, T: 15 },
 ];
 const decimal = (value: number, digits = 2) => value.toLocaleString("id-ID", { minimumFractionDigits: digits, maximumFractionDigits: digits });
 const percent = (value: number) => `${Math.round(value * 100)}%`;
@@ -72,13 +73,14 @@ export default function Ambang() {
   }, [controls, results.input]);
 
   const { selected, points } = results;
+  const profileName = Object.entries(profiles).find(([, rate]) => rate === results.input.rate)?.[0];
   const provenance = selected.exact ? "sesuai proposal" : "tersimulasi di peramban";
   const captureClaim = resultClaim("capture", selected.capture, percent(selected.capture), selected.exact, selected.exact ? `${selected.source}.capture · tangkapan ambang dalam 60 menit` : "simulate · 20.000 sesi · tangkapan ambang dalam 60 menit");
   const medianDisplay = selected.median === null ? "Tidak terpicu" : `${decimal(selected.median, 1)} menit`;
   const metrics = [
     { label: "Tangkapan ambang", display: captureClaim.tampil, claim: captureClaim, note: selected.N === 1 ? "Termasuk ajakan Tingkat 1; tidak semua sinyal memanggil petugas." : "Sesi yang mencapai ambang pemicu selama 60 menit." },
     { label: "Median waktu pemicu", display: medianDisplay, claim: resultClaim("median", selected.median ?? 0, medianDisplay, selected.exact, selected.exact ? `${selected.source}.median_trigger · hanya sesi yang terpicu` : "simulate · 20.000 sesi · hanya sesi yang terpicu"), note: "Dihitung hanya dari sesi yang mencapai ambang." },
-    { label: "Alarm palsu / jam / ruang", display: decimal(selected.falseAlarm), claim: resultClaim("false-alarm", selected.falseAlarm, decimal(selected.falseAlarm), selected.exact, `grid.${selected.N}_${selected.T}.fa_room_h · empat zona`), note: selected.falseAlarm > 1 ? "Melewati batas ≤1 alarm palsu per jam per ruang." : "Dalam batas ≤1 alarm palsu per jam per ruang." },
+    { label: "Alarm palsu / jam / ruang · orde pertama", display: decimal(selected.falseAlarm), claim: resultClaim("false-alarm", selected.falseAlarm, decimal(selected.falseAlarm), selected.exact, `falseAlarmPerHour · empat zona · orde pertama tanpa jeda pemicu ulang`), note: selected.falseAlarm > 1 ? "Melewati batas ≤1 alarm palsu per jam per ruang." : "Dalam batas ≤1 alarm palsu per jam per ruang." },
     { label: "Penurunan dosis relatif", display: percent(results.dose), claim: resultClaim("dose", results.dose, percent(results.dose), results.doseExact, results.doseExact ? (selected.N === 3 ? "profiles · 3_10.dose_red" : `two_tier · frekuensi ${results.input.rate} · kepatuhan ${results.input.compliance}`) : "twoTier · 20.000 sesi"), note: `${results.doseExact ? "sesuai proposal" : "tersimulasi di peramban"} · relatif terhadap tanpa tindakan, bukan penurunan kasus penyakit.` },
   ];
   const xMax = Math.max(5, ...points.map((point) => point.falseAlarm), selected.falseAlarm);
@@ -90,7 +92,7 @@ export default function Ambang() {
 
   return <>
     <PageHead title="Kenapa dua tingkat?" answer={<>
-      Ambang ≥{selected.N}/{selected.T} menangkap <Em>{captureClaim.tampil}</Em> sesi dalam model tunggu 60 menit. <ClaimTag claim={captureClaim} /> <span>{provenance}</span>
+      Ambang ≥{selected.N}/{selected.T} menangkap <Em>{captureClaim.tampil}</Em> sesi pasien profil {profileName} dalam model tunggu 60 menit. <ClaimTag claim={captureClaim} /> <span>{provenance}</span>
     </>} />
     <div className="grid min-w-0 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
       <Panel>
@@ -102,6 +104,7 @@ export default function Ambang() {
               className={`button ${sameControls(controls, { ...defaults, N: preset.N, T: preset.T }) ? "" : "button-quiet"}`}
               aria-pressed={sameControls(controls, { ...defaults, N: preset.N, T: preset.T })}
               onClick={() => setControls({ ...defaults, N: preset.N, T: preset.T })}>{preset.label}</button>)}
+            <p className="page-note">Mode bising menaikkan ambang untuk ruang yang melewati batas alarm. Kartu seluruh sebaran pasien di bawah memuat hasil populasi proposal.</p>
           </fieldset>
           <label className="flex flex-col gap-2" htmlFor="ambang-n">Jumlah batuk (N)
             <select id="ambang-n" className="min-h-11 rounded-lg border border-line-2 bg-panel px-3" value={controls.N} onChange={(event) => update("N", Number(event.target.value))}>
@@ -156,7 +159,7 @@ export default function Ambang() {
               </circle>)}
               <circle cx={x(selected.falseAlarm)} cy={y(selected.capture)} r="9" fill="var(--accent-ink)" stroke="var(--panel)" strokeWidth="3" />
             </svg>
-            <figcaption className="page-note">Titik terpilih: ≥{selected.N}/{selected.T}, {provenance}. Area mint: ≤1 alarm/jam/ruang. Di peramban: 20.000 sesi untuk hasil terpilih dan 5.000 sesi per titik sebar, dengan benih tetap. Status tiap titik ada pada tabel.</figcaption>
+            <figcaption className="page-note">Titik terpilih: ≥{selected.N}/{selected.T}, profil {profileName}, {provenance}. Alarm dihitung dengan rumus orde pertama tanpa jeda pemicu ulang. Area mint: ≤1 alarm/jam/ruang. Di peramban: 20.000 sesi untuk hasil terpilih dan 5.000 sesi per titik sebar, dengan benih tetap. Status tiap titik ada pada tabel.</figcaption>
             <details className="mt-4">
               <summary className="min-h-11 cursor-pointer py-3">Lihat nilai 20 ambang</summary>
               <table className="w-full text-left text-xs">
@@ -179,6 +182,16 @@ export default function Ambang() {
             </div>
           </Panel>)}
         </div>
+        <Panel>
+          <PanelHead title="Seluruh sebaran pasien" />
+          <div className="panel-body space-y-4">
+            <p className="page-note">Rujukan tetap dari proposal untuk waktu tunggu 60 menit dan sensitivitas 90,4%. Angka populasi ini tidak dihitung ulang oleh kontrol profil pasien di atas.</p>
+            <p>Ambang ≥2/15 menangkap <Em>{CLAIMS.capturePopulation.tampil}</Em> pada seluruh sebaran pasien. <ClaimTag claim={CLAIMS.capturePopulation} /></p>
+            <p>Penurunan dosis relatif rata-rata <Em>{CLAIMS.dosePopulationLow.tampil} sampai {CLAIMS.dosePopulationHigh.tampil}</Em>, dengan kepatuhan ajakan Tingkat 1 dari 0% sampai 50%. <ClaimTag claim={CLAIMS.dosePopulationLow} /> <ClaimTag claim={CLAIMS.dosePopulationHigh} /> Ini bukan penurunan kasus penyakit.</p>
+            <p>Mode bising ≥3/15: tangkapan populasi <Em>{CLAIMS.captureNoisy.tampil}</Em> <ClaimTag claim={CLAIMS.captureNoisy} /> dan <Em>{CLAIMS.falseAlarmNoisy.tampil}</Em> alarm palsu per jam per ruang dengan jeda pemicu ulang 15 menit. <ClaimTag claim={CLAIMS.falseAlarmNoisy} /></p>
+            <p className="page-note">Untuk ≥2/15 dan 1,03 suara palsu per jam per zona, <Em>{CLAIMS.falseAlarmTier2.tampil}</Em> adalah estimasi orde pertama tanpa jeda pemicu ulang <ClaimTag claim={CLAIMS.falseAlarmTier2} />; <Em>{CLAIMS.falseAlarmWithPause.tampil}</Em> memakai jeda pemicu ulang 15 menit. <ClaimTag claim={CLAIMS.falseAlarmWithPause} /></p>
+          </div>
+        </Panel>
       </div>
     </div>
     <p className="page-note">{copy.modelLimit} Kepatuhan mengubah penurunan dosis, bukan deteksi batuk. Satu batuk dapat memicu ajakan Tingkat 1; angka 87% bukan tangkapan pager. Waktu respons dan efektivitas masker adalah asumsi tetap.</p>

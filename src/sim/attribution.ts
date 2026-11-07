@@ -4,6 +4,8 @@ export const NODE_XY = {
   A: [1.25, 2.5], B: [3.75, 2.5], C: [6.25, 2.5], D: [8.75, 2.5],
 } as const;
 
+export const DEFAULT_AMBIGUOUS_DB = 1.5;
+
 export interface AttributionOptions {
   activeZones?: readonly ZoneId[];
   ambiguousDb?: number;
@@ -25,7 +27,7 @@ export function attribute(x: number, y: number, options: AttributionOptions = {}
   const deltaDb = second ? 10 * Math.log10(second.r2 / first.r2) : Infinity;
   return {
     primary: first.zone,
-    secondary: second && deltaDb < (options.ambiguousDb ?? 3) ? second.zone : null,
+    secondary: second && deltaDb < (options.ambiguousDb ?? DEFAULT_AMBIGUOUS_DB) ? second.zone : null,
     deltaDb,
     levelsDb: Object.fromEntries(ranked.map(({ zone, r2 }) => [zone, -10 * Math.log10(r2)])),
   };
