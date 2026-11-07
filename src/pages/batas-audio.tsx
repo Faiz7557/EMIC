@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CLAIMS } from "../data/claims";
 import { copy } from "../data/copy";
-import { reduce } from "../sim/engine";
 import { decodePacket, encodePacket, toHex } from "../sim/packet";
 import type { PacketTrace } from "../sim/types";
 import { useSim } from "../store/sim-store";
@@ -96,6 +95,7 @@ export default function BatasAudio() {
   const { state, dispatch, paused, setPaused } = useSim();
   const [packetId, setPacketId] = useState<number | null>(null);
   const [trial, setTrial] = useState<Trial | null>(null);
+  const pendingTrial = useRef<{ counters: typeof state.counters; lastPacketId: number } | null>(null);
   const lastPacket = state.packets.at(-1);
   const packet = state.packets.find((item) => item.id === packetId) ?? lastPacket;
   const running = trial !== null && trial.phase < STAGES.length - 1;
@@ -108,22 +108,31 @@ export default function BatasAudio() {
 
   useEffect(() => {
     if (state.packets.length === 0 && state.counters.speechIgnored === 0) {
+      pendingTrial.current = null;
       setTrial(null);
       setPacketId(null);
     }
   }, [state.packets.length, state.counters.speechIgnored]);
 
+  useEffect(() => {
+    const baseline = pendingTrial.current;
+    if (!baseline) return;
+    const events = state.counters.eventPackets - baseline.counters.eventPackets;
+    const merged = state.counters.mergedCoughs > baseline.counters.mergedCoughs;
+    if (events === 0 && !merged && state.counters.speechIgnored === baseline.counters.speechIgnored) return;
+    pendingTrial.current = null;
+    setTrial((previous) => previous ? { ...previous, events, merged } : previous);
+    const event = state.packets.find((item) => item.kind === "EVENT" && item.id > baseline.lastPacketId);
+    if (event) setPacketId(event.id);
+  }, [state.counters.eventPackets, state.counters.mergedCoughs, state.counters.speechIgnored, state.packets]);
+
   function demonstrate(input: Trial["input"]) {
     const action = input === "speech" ? { type: "speech", zone: "A" } as const : { type: "cough", x: 0, y: 0 } as const;
-    const next = reduce(state, action);
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setTrial((previous) => ({ input, events: next.counters.eventPackets - state.counters.eventPackets, merged: next.counters.mergedCoughs > state.counters.mergedCoughs,
-      generation: (previous?.generation ?? 0) + 1, phase: reducedMotion ? STAGES.length - 1 : 0 }));
-    if (input === "cough") {
-      const event = next.packets.find((item) => item.kind === "EVENT" && item.id > (lastPacket?.id ?? 0));
-      if (event) setPacketId(event.id);
-    }
     dispatch(action);
+    pendingTrial.current = { counters: state.counters, lastPacketId: lastPacket?.id ?? 0 };
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setTrial((previous) => ({ input, events: 0, merged: false,
+      generation: (previous?.generation ?? 0) + 1, phase: reducedMotion ? STAGES.length - 1 : 0 }));
   }
 
   return <>

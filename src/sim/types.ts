@@ -59,6 +59,7 @@ export interface LogEntry {
   levelDb: number | null;
   status: NodeStatus;
   responseMs: number | null;
+  alertGroup: number | null;
 }
 
 export interface SimEffect {
