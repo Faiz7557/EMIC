@@ -72,6 +72,7 @@ function log(state: SimState, kind: LogKind, zone: ZoneId, levelDb: number | nul
   state.log.push({
     id: (state.log.at(-1)?.id ?? 0) + 1, tMs: state.nowMs, kind, zone,
     count: state.zones[zone].coughsMs.length, levelDb, status, responseMs,
+    alertGroup: kind === "DITANGANI" ? state.zones[zone].alertGroup : null,
   });
 }
 
@@ -235,8 +236,8 @@ function handlePager(state: SimState): void {
     current.tier = "ditangani";
     current.pauseUntilMs = state.nowMs + state.cfg.pauseMin * 60000;
     current.nextRebuzzMs = null;
-    current.alertGroup = null;
     log(state, "DITANGANI", zone, null, state.nowMs - current.alertAtMs!);
+    current.alertGroup = null;
   }
   packet(state, "DONE", "PAGER", "A");
   state.pagerBuzzing = state.pendingGroups.length > 0;

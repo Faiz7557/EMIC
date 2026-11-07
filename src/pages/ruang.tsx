@@ -97,9 +97,9 @@ export default function Ruang() {
   }, [last, state.effects, state.log.length]);
 
   const responses = useMemo(() => {
-    const byTime = new Map<string, number>();
-    for (const entry of state.log) if (entry.kind === "DITANGANI" && entry.responseMs !== null) byTime.set(`${entry.tMs}:${entry.responseMs}`, entry.responseMs);
-    return [...byTime.values()].sort((a, b) => a - b);
+    const byGroup = new Map<number, number>();
+    for (const entry of state.log) if (entry.kind === "DITANGANI" && entry.responseMs !== null && entry.alertGroup !== null) byGroup.set(entry.alertGroup, entry.responseMs);
+    return [...byGroup.values()].sort((a, b) => a - b);
   }, [state.log]);
   const median = responses.length ? (responses[Math.floor((responses.length - 1) / 2)] + responses[Math.floor(responses.length / 2)]) / 2 : null;
   const latestResponse = [...state.log].reverse().find((entry) => entry.kind === "DITANGANI");

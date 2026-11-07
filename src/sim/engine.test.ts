@@ -190,9 +190,13 @@ describe("cough groups and pager queue", () => {
     expect(state.pendingGroups).toEqual([state.zones.B.alertGroup]);
     expect(state.packets.filter((packet) => packet.kind === "ALERT")).toHaveLength(1);
     expect(state.pagerBuzzing).toBe(true);
+    const group = state.zones.B.alertGroup;
+    expect(group).not.toBeNull();
     state = reduce(tick(state, 5000), { type: "pagerPress" });
     expect([state.zones.B.tier, state.zones.C.tier]).toEqual(["ditangani", "ditangani"]);
     expect(state.log.filter((entry) => entry.kind === "DITANGANI").map((entry) => entry.responseMs)).toEqual([5000, 5000]);
+    expect(state.log.filter((entry) => entry.kind === "DITANGANI").map((entry) => entry.alertGroup)).toEqual([group, group]);
+    expect(state.log.filter((entry) => entry.kind !== "DITANGANI").every((entry) => entry.alertGroup === null)).toBe(true);
     expect(state.pendingGroups).toEqual([]);
     expect(state.pagerBuzzing).toBe(false);
   });
@@ -210,6 +214,23 @@ describe("cough groups and pager queue", () => {
     state = reduce(state, { type: "pagerPress" });
     expect(state.zones.A.tier).toBe("ditangani");
     expect(state.pagerBuzzing).toBe(false);
+  });
+
+  test("distinct groups handled at the same time with equal durations retain distinct ids", () => {
+    let state = createInitialState({ n2: 1 });
+    state = reduce(state, { type: "coughZone", zone: "A" });
+    state = reduce(state, { type: "coughZone", zone: "D" });
+    const groups = [...state.pendingGroups];
+    expect(groups).toHaveLength(2);
+    expect(groups[0]).not.toBe(groups[1]);
+    state = tick(state, 5000);
+    state = reduce(state, { type: "pagerPress" });
+    state = reduce(state, { type: "pagerPress" });
+    const handled = state.log.filter((entry) => entry.kind === "DITANGANI");
+    expect(handled.map((entry) => entry.tMs)).toEqual([5000, 5000]);
+    expect(handled.map((entry) => entry.responseMs)).toEqual([5000, 5000]);
+    expect(handled.map((entry) => entry.alertGroup)).toEqual(groups);
+    expect(state.log.filter((entry) => entry.kind !== "DITANGANI").every((entry) => entry.alertGroup === null)).toBe(true);
   });
 
   test("coughs within the inclusive merge window count once; the window does not slide", () => {
