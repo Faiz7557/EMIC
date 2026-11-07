@@ -6,6 +6,7 @@ import { CLAIMS } from "../data/claims";
 import { useSim } from "../store/sim-store";
 import { ClaimTag } from "./claim-tag";
 import { cn } from "./ui";
+import { Tour } from "./tour";
 
 const navIcons = { "/": AudioLines, "/dasbor": ChartColumn, "/alat": Cpu, "/batas-audio": VolumeX, "/ambang": SlidersHorizontal, "/bukti": ShieldCheck };
 const groups = ["Apa yang terjadi?", "Apa alatnya?", "Bisakah dipercaya?"] as const;
@@ -61,6 +62,8 @@ export function Shell({ children, path, demoRequested = false }: { children: Rea
   const { reset } = useSim();
   const [mini, setMini] = useState(false);
   const [demoDismissed, setDemoDismissed] = useState(false);
+  const [demoOpen, setDemoOpen] = useState(false);
+  const startDemo = () => { setDemoDismissed(true); window.location.hash = "#/"; setDemoOpen(true); };
   const drawer = useRef<HTMLDialogElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -120,16 +123,16 @@ export function Shell({ children, path, demoRequested = false }: { children: Rea
         </div>
         {path === "/" && demoRequested && !demoDismissed && <div className="demo-offer">
           <p>Lihat SUAR bekerja dalam 1 menit</p>
-          <p>Demo terpandu belum tersedia pada fondasi ini.</p>
-          <div className="page-actions"><button type="button" className="button" disabled>Mulai</button>
+          <p>Enam langkah untuk mencoba alur SUAR. Demo dimulai dari keadaan reset.</p>
+          <div className="page-actions"><button type="button" className="button" onClick={startDemo}>Mulai</button>
             <button type="button" className="button button-quiet" onClick={() => setDemoDismissed(true)}>Jelajahi sendiri</button></div>
         </div>}
         {children}
         <footer className="app-footer">{copy.footer}</footer>
       </div>
-      <div className="demo-placeholder" title="Demo terpandu belum tersedia pada fondasi ini.">
-        <button className="demo-button" type="button" disabled aria-describedby="demo-note"><Play size={16} aria-hidden="true" />Demo 1 menit</button>
-        <span id="demo-note">Segera tersedia</span>
+      <div className="demo-placeholder">
+        <button className="demo-button" type="button" onClick={startDemo}><Play size={16} aria-hidden="true" />Demo 1 menit</button>
+        {demoOpen && path === "/" && <Tour onClose={() => setDemoOpen(false)} />}
       </div>
     </div>
     <dialog id="mobile-navigation" className="mobile-drawer" ref={drawer} aria-label="Menu navigasi SUAR" onClose={() => { setDrawerOpen(false); menuButton.current?.focus(); }}
