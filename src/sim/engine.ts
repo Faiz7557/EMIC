@@ -31,7 +31,7 @@ export function createInitialState(cfg: Partial<SimConfig> = {}): SimState {
     zones: Object.fromEntries(ZONES.map((zone) => [zone, initialZone()])) as SimState["zones"],
     packets: [], log: [], effects: [], pagerBuzzing: false, pendingGroups: [],
     seq: { A: 0, B: 0, C: 0, D: 0 },
-    counters: { audioBytesOut: 0, eventPackets: 0, speechIgnored: 0 }, lastMerge: null,
+    counters: { audioBytesOut: 0, eventPackets: 0, speechIgnored: 0, mergedCoughs: 0 }, lastMerge: null,
   };
 }
 
@@ -176,6 +176,13 @@ function detectCough(state: SimState, x: number, y: number, radios: Radios): voi
     log(state, "STATUS_SIMPUL", nearest, null, null, radios[nearest].status);
     return;
   }
+  const affected = [result.primary, ...(result.secondary ? [result.secondary] : [])];
+  const previous = state.lastMerge;
+  if (previous && state.nowMs - previous.tMs <= state.cfg.mergeMs
+    && affected.some((zone) => previous.zones.includes(zone))) {
+    state.counters.mergedCoughs++;
+    return;
+  }
   // Radio reports are illustrative traces scheduled 20 ms apart. Their offsets
   // do not advance the simulation clock or shift the physical cough timestamp.
   let report = 0;
@@ -186,11 +193,8 @@ function detectCough(state: SimState, x: number, y: number, radios: Radios): voi
     packet(state, "EVENT", zone, "A", levelDb, tMs);
     packet(state, "ACK", "A", zone, 0, tMs, radios.A.status === "terbatas" ? "terbatas" : "normal");
   }
-  if (state.lastMerge && state.nowMs - state.lastMerge.tMs <= state.cfg.mergeMs) return;
-
   const group = (state.log.at(-1)?.id ?? 0) + 1;
-  state.lastMerge = { tMs: state.nowMs, group };
-  const affected = [result.primary, ...(result.secondary ? [result.secondary] : [])];
+  state.lastMerge = { tMs: state.nowMs, group, zones: affected };
   const alerted: ZoneId[] = [];
   for (const zone of affected) {
     const current = state.zones[zone];

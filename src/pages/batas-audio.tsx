@@ -119,7 +119,10 @@ export default function BatasAudio() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setTrial((previous) => ({ input, events: next.counters.eventPackets - state.counters.eventPackets,
       generation: (previous?.generation ?? 0) + 1, phase: reducedMotion ? STAGES.length - 1 : 0 }));
-    setPacketId(null);
+    if (input === "cough") {
+      const event = next.packets.find((item) => item.kind === "EVENT" && item.id > (lastPacket?.id ?? 0));
+      if (event) setPacketId(event.id);
+    }
     dispatch(action);
   }
 

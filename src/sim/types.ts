@@ -80,8 +80,8 @@ export interface SimState {
   pagerBuzzing: boolean;
   pendingGroups: number[];  // kelompok peringatan, tertua di depan
   seq: Record<ZoneId, number>;
-  counters: { audioBytesOut: 0; eventPackets: number; speechIgnored: number };
-  lastMerge: { tMs: number; group: number } | null;
+  counters: { audioBytesOut: 0; eventPackets: number; speechIgnored: number; mergedCoughs: number };
+  lastMerge: { tMs: number; group: number; zones: ZoneId[] } | null;
 }
 
 export type SimAction =

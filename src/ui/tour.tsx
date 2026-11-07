@@ -9,7 +9,9 @@ type Rect = { x: number; y: number; w: number; h: number };
 
 /** Caliber's spotlight adapted to the local engine and keyboard-operated targets. */
 export function Tour({ onClose }: { onClose: () => void }) {
-  const { dispatch, reset, setPaused, setSpeed } = useSim();
+  const { dispatch, reset, paused, setPaused, setSpeed } = useSim();
+  const wasPaused = useRef(paused);
+  const enteredStep = useRef<number | null>(null);
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(false);
   const [rect, setRect] = useState<Rect | null>(null);
@@ -25,18 +27,18 @@ export function Tour({ onClose }: { onClose: () => void }) {
 
   // Mount after navigating home. Use the existing room reset to also stop its
   // local scenario, then freeze the provider clock for this interactive demo.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null;
     const room = document.getElementById("main-content");
     Array.from(room?.querySelectorAll("button") ?? []).find((button) => button.textContent === "Reset ruang")?.click();
     const role = Array.from(room?.querySelectorAll("label") ?? []).find((label) => label.textContent?.trim().startsWith("Peran"))?.querySelector("select");
     if (role) { role.value = "petugas"; role.dispatchEvent(new Event("change", { bubbles: true })); }
     reset();
-    const frame = requestAnimationFrame(() => { setPaused(true); setReady(true); });
+    setPaused(true);
+    setReady(true);
     return () => {
-      cancelAnimationFrame(frame);
       window.clearTimeout(timer.current);
-      setSpeed(1); setPaused(false);
+      setSpeed(1); setPaused(wasPaused.current);
       if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
       else document.querySelector<HTMLButtonElement>(".demo-button")?.focus({ preventScroll: true });
     };
@@ -50,10 +52,11 @@ export function Tour({ onClose }: { onClose: () => void }) {
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || enteredStep.current === index) return;
+    enteredStep.current = index;
     advancing.current = false;
     if (step?.advanceMs) dispatch({ type: "tick", dtMs: step.advanceMs });
-  }, [step, ready, dispatch]);
+  }, [step, index, ready, dispatch]);
 
   useEffect(() => {
     if (!ready) return;

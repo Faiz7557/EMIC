@@ -2,6 +2,8 @@ import { describe, expect, test } from "vitest";
 import { createInitialState, DEFAULT_CONFIG, reduce } from "./engine";
 import { decodePacket } from "./packet";
 import { morningScenario } from "./scenario";
+import { TOUR_STEPS } from "../ui/tour-steps";
+import { floorPreview } from "../ui/denah-2d";
 import { ZONES, type SimState } from "./types";
 
 const tick = (state: SimState, dtMs: number) => reduce(state, { type: "tick", dtMs });
@@ -121,6 +123,41 @@ describe("scenario and time boundaries (TRD §5)", () => {
 });
 
 describe("cough groups and pager queue", () => {
+  test("paused-clock coughs in A and D are independent, while repeated C coughs merge", () => {
+    let state = reduce(createInitialState(), { type: "coughZone", zone: "A" });
+    const firstEvents = state.counters.eventPackets;
+    state = reduce(state, { type: "coughZone", zone: "D" });
+    expect(state.nowMs).toBe(0);
+    expect(state.zones.A.totalCoughs).toBe(1);
+    expect(state.zones.D.totalCoughs).toBe(1);
+    expect(state.counters.eventPackets).toBeGreaterThan(firstEvents);
+    expect(state.counters.mergedCoughs).toBe(0);
+
+    const first = freezeDeep(cough(createInitialState()));
+    const merged = cough(first);
+    expect(merged.nowMs).toBe(0);
+    expect(merged.zones.C.totalCoughs).toBe(1);
+    expect(merged.zones.C.tier).toBe("tingkat1");
+    expect(merged.counters.mergedCoughs).toBe(1);
+    expect(merged.counters.eventPackets).toBe(first.counters.eventPackets);
+    expect(merged.packets).toEqual(first.packets);
+    expect(merged.log).toEqual(first.log);
+    expect(merged.lastMerge).toEqual({ tMs: 0, group: 1, zones: ["C"] });
+  });
+
+  test("merge requires zone intersection, including ambiguous groups", () => {
+    const first = freezeDeep(reduce(createInitialState(), { type: "cough", x: 5, y: 2.5 }));
+    const merged = cough(tick(first, 300));
+    expect(merged.counters.mergedCoughs).toBe(1);
+    expect(merged.counters.eventPackets).toBe(first.counters.eventPackets);
+    expect(merged.lastMerge).toEqual(first.lastMerge);
+    expect(merged.zones.B.totalCoughs).toBe(1);
+    expect(merged.zones.C.totalCoughs).toBe(1);
+    const separate = reduce(tick(first, 300), { type: "coughZone", zone: "A" });
+    expect(separate.counters.mergedCoughs).toBe(0);
+    expect(separate.zones.A.totalCoughs).toBe(1);
+    expect(cough(tick(first, 301)).zones.C.totalCoughs).toBe(2);
+  });
   test.each([
     { x: 4.796920185194401, deltaDb: 2, zones: ["B"] },
     { x: 4.898544968737428, deltaDb: 1, zones: ["B", "C"] },
@@ -273,7 +310,7 @@ describe("node radio, privacy, and reducer integrity", () => {
 
   test("speech produces only its visual effect and ignored counter", () => {
     const state = reduce(createInitialState(), { type: "speech", zone: "C" });
-    expect(state.counters).toEqual({ audioBytesOut: 0, eventPackets: 0, speechIgnored: 1 });
+    expect(state.counters).toEqual({ audioBytesOut: 0, eventPackets: 0, speechIgnored: 1, mergedCoughs: 0 });
     expect(state.packets).toEqual([]);
     expect(state.log).toEqual([]);
     expect(state.effects).toMatchObject([{ kind: "speech", zones: ["C"] }]);
@@ -310,4 +347,30 @@ describe("node radio, privacy, and reducer integrity", () => {
     for (const dtMs of [0, -1, Infinity, NaN]) expect(tick(initial, dtMs)).toBe(initial);
     expect(reduce(initial, { type: "pagerPress" })).toBe(initial);
   });
+});
+
+test("frozen tour actions produce tier 2 seven minutes later and a 160000-ms response", () => {
+  let state = createInitialState();
+  for (const step of TOUR_STEPS) {
+    if (step.advanceMs) state = tick(state, step.advanceMs);
+    if (step.action) state = reduce(state, step.action);
+  }
+  expect(state.log.filter((entry) => entry.kind !== "BATUK").map(({ kind, tMs, responseMs }) => ({ kind, tMs, responseMs }))).toEqual([
+    { kind: "TINGKAT1", tMs: 0, responseMs: null },
+    { kind: "TINGKAT2", tMs: 420000, responseMs: null },
+    { kind: "DITANGANI", tMs: 580000, responseMs: 160000 },
+  ]);
+});
+
+test("floor preview respects active radios, ambiguity threshold and range like the engine", () => {
+  const options = { activeZones: ["A", "B", "D"] as const, ambiguousDb: 0, maxRangeM: 4 };
+  const first = reduce(createInitialState({ ambiguousDb: 0 }), { type: "setNode", zone: "C", status: "luring" });
+  const state = reduce(first, { type: "coughZone", zone: "C" });
+  expect(floorPreview(6.25, 2.5, options)).toBe("Zona B · ΔL 0,0 dB");
+  expect(state.zones.B.totalCoughs).toBe(1);
+  expect(state.zones.C.totalCoughs).toBe(0);
+  expect(state.zones.D.totalCoughs).toBe(0);
+  expect(floorPreview(6.25, 2.5, { ...options, ambiguousDb: 1.5 })).toContain("Zona B dan D");
+  expect(floorPreview(6.25, 2.5, { ...options, maxRangeM: 1 })).toBe("Di luar jangkauan simpul");
+  expect(floorPreview(6.25, 2.5, { ...options, activeZones: [] })).toBe("Di luar jangkauan simpul");
 });

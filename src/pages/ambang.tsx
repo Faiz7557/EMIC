@@ -48,8 +48,8 @@ function calculateResults(input: Controls) {
   const goldenDose = input.sens === SENS && input.falseRate === LAM_F && profile
     ? input.N === 2 && input.T === 15 && complianceKey
       ? analysis.two_tier[profile][complianceKey].dose_red
-      : input.N === 3 && input.T === 10 && input.compliance === 0
-        ? analysis.profiles[profile]["3_10"].dose_red : undefined
+      : (input.N === 3 || input.N === 2) && input.T === 10 && input.compliance === 0
+        ? analysis.profiles[profile][input.N === 3 ? "3_10" : "2_10"].dose_red : undefined
     : undefined;
   const dose = goldenDose ?? twoTier({ rate: input.rate, sens: input.sens, c: input.compliance, N2: input.N, T2: input.T, n: 20000 }).dose_red;
   // ponytail: use a Web Worker only if this debounced recalculation exceeds 200 ms.
@@ -81,7 +81,7 @@ export default function Ambang() {
     { label: "Tangkapan ambang", display: captureClaim.tampil, claim: captureClaim, note: selected.N === 1 ? "Termasuk ajakan Tingkat 1; tidak semua sinyal memanggil petugas." : "Sesi yang mencapai ambang pemicu selama 60 menit." },
     { label: "Median waktu pemicu", display: medianDisplay, claim: resultClaim("median", selected.median ?? 0, medianDisplay, selected.exact, selected.exact ? `${selected.source}.median_trigger · hanya sesi yang terpicu` : "simulate · 20.000 sesi · hanya sesi yang terpicu"), note: "Dihitung hanya dari sesi yang mencapai ambang." },
     { label: "Alarm palsu / jam / ruang · orde pertama", display: decimal(selected.falseAlarm), claim: resultClaim("false-alarm", selected.falseAlarm, decimal(selected.falseAlarm), selected.exact, `falseAlarmPerHour · empat zona · orde pertama tanpa jeda pemicu ulang`), note: selected.falseAlarm > 1 ? "Melewati batas ≤1 alarm palsu per jam per ruang." : "Dalam batas ≤1 alarm palsu per jam per ruang." },
-    { label: "Penurunan dosis relatif", display: percent(results.dose), claim: resultClaim("dose", results.dose, percent(results.dose), results.doseExact, results.doseExact ? (selected.N === 3 ? "profiles · 3_10.dose_red" : `two_tier · frekuensi ${results.input.rate} · kepatuhan ${results.input.compliance}`) : "twoTier · 20.000 sesi"), note: `${results.doseExact ? "sesuai proposal" : "tersimulasi di peramban"} · relatif terhadap tanpa tindakan, bukan penurunan kasus penyakit.` },
+    { label: "Penurunan dosis relatif", display: percent(results.dose), claim: resultClaim("dose", results.dose, percent(results.dose), results.doseExact, results.doseExact ? (selected.T === 10 ? `profiles.${profileName}.${selected.N}_10.dose_red` : `two_tier · frekuensi ${results.input.rate} · kepatuhan ${results.input.compliance}`) : "twoTier · 20.000 sesi"), note: `${results.doseExact ? "sesuai proposal" : "tersimulasi di peramban"} · relatif terhadap tanpa tindakan, bukan penurunan kasus penyakit.` },
   ];
   const xMax = Math.max(5, ...points.map((point) => point.falseAlarm), selected.falseAlarm);
   const x = (value: number) => 58 + value / xMax * 494;

@@ -1,4 +1,4 @@
-﻿import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+﻿import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CLAIMS } from "../data/claims";
 import { copy } from "../data/copy";
 import { morningScenario } from "../sim/scenario";
@@ -21,10 +21,16 @@ export default function Ruang() {
   const [role, setRole] = useState<Role>("petugas");
   const [busy, setBusy] = useState(false);
   const [running, setRunning] = useState(false);
+  const scenarioRunning = useRef(running);
+  scenarioRunning.current = running;
+  const mergedCoughs = useRef(state.counters.mergedCoughs);
   const [scenarioMessage, setScenarioMessage] = useState("");
   const [notice, setNotice] = useState("");
   const floorClick = useCallback((x: number, y: number) => { if (!running) { setNotice(""); dispatch({ type: "cough", x, y }); } }, [dispatch, running]);
-  const viewProps = { zones: state.zones, effects: state.effects, packets: state.packets, onFloorClick: floorClick, onFloorHover: noHover };
+  const activeZones = ZONES.filter((zone) => ([...state.log].reverse().find((entry) => entry.zone === zone && entry.kind === "STATUS_SIMPUL")?.status ?? state.zones[zone].nodeStatus) === "normal");
+  const viewProps = { zones: state.zones, effects: state.effects, packets: state.packets,
+    attribution: { activeZones, ambiguousDb: state.cfg.ambiguousDb, maxRangeM: state.cfg.maxRangeM },
+    onFloorClick: floorClick, onFloorHover: noHover };
   const stopScenario = () => {
     setRunning(false); setPaused(false); setSpeed(1);
     setScenarioMessage("Skenario dihentikan. Status terakhir tetap ada.");
@@ -41,7 +47,7 @@ export default function Ruang() {
     if (!running) return;
     // Split clock advances at exact scenario event times; only the engine
     // decides status. The provider clock is paused during playback.
-    if (!paused) { setRunning(false); setScenarioMessage(""); return; }
+    if (!paused) { setRunning(false); setSpeed(1); setScenarioMessage(""); return; }
     const entries = morningScenario(busy);
     const end = entries[entries.length - 1].tMs + state.cfg.pauseMin * 60000;
     let cursor = 0;
@@ -70,7 +76,14 @@ export default function Ruang() {
     frame = requestAnimationFrame(animate);
     return () => { cancelAnimationFrame(frame); document.removeEventListener("visibilitychange", visibility); };
   }, [running, paused, busy, state.cfg.pauseMin, dispatch, setPaused, setSpeed]);
-  useEffect(() => () => setPaused(false), [setPaused]);
+  useEffect(() => () => {
+    if (scenarioRunning.current) { setSpeed(1); setPaused(false); }
+  }, [setPaused, setSpeed]);
+
+  useEffect(() => {
+    if (state.counters.mergedCoughs > mergedCoughs.current) setNotice("Disatukan dengan batuk sebelumnya");
+    mergedCoughs.current = state.counters.mergedCoughs;
+  }, [state.counters.mergedCoughs]);
 
   const last = state.log[state.log.length - 1];
   useEffect(() => {
@@ -99,24 +112,21 @@ export default function Ruang() {
   return <>
     <PageHead title="Apa yang terjadi saat seseorang batuk?" answer={<>Ambang lama menangkap <Em>{CLAIMS.captureOld.tampil}</Em> <ClaimTag claim={CLAIMS.captureOld} /> pasien median. Dua tingkat memberi sinyal pada <Em>{CLAIMS.anySignal.tampil}</Em> <ClaimTag claim={CLAIMS.anySignal} /> dan memanggil petugas pada <Em>{CLAIMS.captureTier2.tampil}</Em> <ClaimTag claim={CLAIMS.captureTier2} />, dengan <Em>{CLAIMS.falseAlarmWithPause.tampil}</Em> <ClaimTag claim={CLAIMS.falseAlarmWithPause} /> alarm palsu per jam per ruang dengan jeda pemicu ulang 15 menit. Hasil simulasi, belum diukur.</>} actions={<button type="button" className="button button-quiet" onClick={resetRoom}>Reset ruang</button>} />
     <div aria-live="polite" aria-atomic="true" className="sr-only">{liveStatus} Percakapan diabaikan: {state.counters.speechIgnored}. {notice} {scenarioMessage}</div>
-    <Panel aria-label="Kontrol waktu dan skenario">
-      <div className="panel-body" style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+    <div className="room-time-controls" role="group" aria-label="Kontrol waktu dan skenario">
         <button type="button" className="button" onClick={running ? stopScenario : playScenario}>{running ? "Hentikan skenario" : "Putar skenario pagi"}</button>
         <label style={{ display: "inline-flex", alignItems: "center", gap: 8, minHeight: 44 }}><input type="checkbox" checked={busy} disabled={running} onChange={(event) => setBusy(event.target.checked)} />Petugas sibuk</label>
         <time style={{ fontFamily: "var(--font-mono)", fontSize: 20, fontWeight: 600 }}>{formatSimTime(state.nowMs, state.cfg.startClockMin)}</time>
-        <fieldset disabled={running} style={{ display: "flex", flexWrap: "wrap", gap: 8, border: 0, padding: 0, margin: 0 }}>
+        <fieldset disabled={running}>
           <legend className="sr-only">Waktu simulasi</legend>
           <button type="button" className="button button-quiet" aria-pressed={paused && !running} onClick={() => setPaused(!paused)}>{paused && !running ? "Lanjutkan jam" : "Jeda jam"}</button>
           {[1, 60].map((value) => <button key={value} type="button" className={`button${speed === value ? "" : " button-quiet"}`} aria-pressed={speed === value} onClick={() => setSpeed(value)}>{value}×</button>)}
           {[1, 5, 15].map((minutes) => <button key={minutes} type="button" className="button button-quiet" onClick={() => dispatch({ type: "tick", dtMs: minutes * 60000 })}>+{minutes} menit</button>)}
         </fieldset>
-      </div>
-      <div style={{ padding: "0 20px 20px" }}><p className="page-note">{scenarioMessage || "Peragaan: percakapan 09.05, batuk 09.15 dan 09.22, ditangani 09.24.40. Cabang sibuk: eskalasi 09.25, ditangani 09.26."}</p></div>
-    </Panel>
-    <div style={{ display: "grid", gridTemplateColumns: narrow ? "minmax(0, 1fr)" : "minmax(0, 2fr) minmax(260px, 1fr)", gap: 24, alignItems: "start" }}>
-      <Panel>
+    </div>
+    <div className="room-layout" style={{ display: "grid", gridTemplateColumns: narrow ? "minmax(0, 1fr)" : "minmax(0, 2fr) minmax(260px, 1fr)", gap: 24, alignItems: "start" }}>
+      <Panel className="room-panel">
         <PanelHead title="Ruang tunggu" aside={<span className="muted">Klik lantai = batuk</span>} />
-        <div className="panel-body" style={{ padding: narrow ? 12 : 20 }}>
+        <div className="panel-body" style={{ padding: 12 }}>
           <Suspense fallback={<Denah2D {...viewProps} />}><Scene3D {...viewProps} /></Suspense>
           <fieldset disabled={running} style={{ border: 0, padding: 0, margin: "16px 0 0" }}>
             <legend className="sr-only">Peragakan suara</legend>
@@ -161,6 +171,7 @@ export default function Ruang() {
         </div>
       </Panel>
     </div>
+    <p className="page-note">{scenarioMessage || "Peragaan: percakapan 09.05, batuk 09.15 dan 09.22, ditangani 09.24.40. Cabang sibuk: eskalasi 09.25, ditangani 09.26."}</p>
     <LogTable log={state.log} startClockMin={state.cfg.startClockMin} />
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 210px), 1fr))", gap: 16 }}>
       {[
