@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Versi | 1.0, 7 November 2026 |
+| Versi | 1.1, 7 November 2026, disinkronkan dengan revisi proposal |
 | Tim | IRIS Heisenberg, EMIC MR Days 2026 |
 | Tenggat keras | Proposal semifinal, 7 November 2026 pukul 23.59 |
 | Dokumen terkait | [TRD](TRD.md), [App Flow](APP_FLOW.md), [Design Brief](DESIGN_BRIEF.md), [Implementation Plan](IMPLEMENTATION_PLAN.md) |
@@ -55,7 +55,7 @@ Prioritas: P0 wajib ada saat freeze, P1 sangat diharapkan, P2 dipotong pertama j
 |---|---|---|---|
 | FR-01 | P0 | Ruang 10 x 5 x 3 m dengan 4 simpul zona A sampai D | Koordinat simpul sama persis dengan `analysis.py`: (1,25; 2,5), (3,75; 2,5), (6,25; 2,5), (8,75; 2,5), tinggi 2 m |
 | FR-02 | P0 | Klik lantai berarti ada batuk di titik itu | Atribusi memakai model medan bebas. Hasil sama dengan 800 sel `attrib.cells` |
-| FR-03 | P0 | Aturan ΔL < 3 dB menandai dua zona | Titik di area arsir menaikkan status dua zona |
+| FR-03 | P0 | Aturan ΔL < 1,5 dB menandai dua zona | Titik di area arsir menaikkan status dua zona |
 | FR-04 | P0 | Sinyal dua tingkat | 1 batuk menjadi Tingkat 1. Minimal 2 batuk dalam 15 menit menjadi Tingkat 2. Batas tepat 15 menit 0 detik tetap memicu |
 | FR-05 | P0 | Papan pengunjung | Pada Tingkat 1 muncul ajakan mengambil masker dengan teks dari Gambar 19 proposal |
 | FR-06 | P0 | Pager petugas | Pada Tingkat 2 pager bergetar dan LED zona menyala. Tombol "ditangani" mencatat waktu respons |
@@ -104,7 +104,7 @@ Prioritas: P0 wajib ada saat freeze, P1 sangat diharapkan, P2 dipotong pertama j
 
 | ID | Prioritas | Kebutuhan | Kriteria penerimaan |
 |---|---|---|---|
-| FR-60 | P0 | Tabel janji | Enam baris Tabel janji proposal, status tidak lebih kuat daripada proposal |
+| FR-60 | P0 | Tabel janji | Tujuh baris Tabel janji proposal, status tidak lebih kuat daripada proposal |
 | FR-61 | P0 | Empat gerbang | G1 sampai G4 dengan kriteria lulus dan status "belum dijalankan" |
 | FR-62 | P0 | Daftar batas simulator | Tertulis jelas apa yang tidak dibuktikan simulator |
 
@@ -147,7 +147,10 @@ Tabel angka pembuka, semuanya untuk pasien median dan berstatus tersimulasi:
 | Tangkapan ambang lama ≥3/10 | 6,76%, tampil 7% | `grid.3_10.capture` |
 | Tangkapan Tingkat 2 ≥2/15 | 43,37%, tampil 43% | `grid.2_15.capture` |
 | Sinyal apa pun termasuk satu batuk | 87,42%, tampil 87% | `two_tier.Median.0.0.any_signal` |
-| Alarm palsu Tingkat 2 per jam per ruang | 0,94 | `grid.2_15.fa_room_h` |
+| Alarm palsu Tingkat 2 per jam per ruang, orde pertama | 0,94 | `grid.2_15.fa_room_h` |
+| Alarm palsu Tingkat 2 dengan jeda pemicu ulang 15 menit | 0,73 | `analysis2.alarm.sim[2]` |
+| Tangkapan Tingkat 2 pada seluruh sebaran pasien | 49% | `analysis2.pop.0.0.capture` |
+| Zona benar tertandai, model gema, ΔL < 1,5 dB | 91% | `analysis2.attrib_gap.1.5.tagged` |
 
 Angka 87% tidak boleh ditulis seolah semua sinyal sampai ke petugas.
 
@@ -174,8 +177,8 @@ Proposal tidak merinci hal berikut. Simulator memakai asumsi di bawah dan menamp
 | A2 | Batuk selama jeda Ditangani | Tercatat di log, tidak memicu sinyal, dan penghitung direset saat jeda selesai | Tim memastikan untuk final |
 | A3 | Satu tombol pager saat beberapa zona aktif | Tombol menutup satu kelompok peringatan tertua. Dua zona dari satu batuk ambigu menjadi satu kelompok | Tim memastikan untuk final |
 | A4 | Koordinator (Simpul A) mati | Simpul A tidak dapat dibuat luring di simulator, disertai catatan | Perlu keputusan rancangan sebelum final |
-| A5 | Letak simpul | Model menaruh simpul di garis tengah ruang pada tinggi 2 m, sedangkan langkah pasang menulis "tempel". Simulator memakai penggantung plafon agar koordinat sama dengan model | **Tim perlu menyelaraskan saat final. Atribusi perlu dihitung ulang bila simpul ditempel di dinding** |
 | A6 | Pengodean byte paket | Proposal hanya menetapkan ukuran medan. Simulator menetapkan urutan byte pada TRD | Tim memakainya untuk firmware atau menggantinya |
+| A7 | Level 50 ms awal dan rata-rata dua batuk | Proposal menentukan zona Tingkat 2 dari rata-rata level 50 ms awal minimal dua batuk, dengan model gema. Simulator memakai medan bebas tanpa gema dan menentukan zona per batuk | Berlaku bila firmware dibangun; angka 91% tetap dikutip dari proposal |
 
 ## 11. Risiko
 
@@ -183,11 +186,11 @@ Proposal tidak merinci hal berikut. Simulator memakai asumsi di bawah dan menamp
 |---|---|---|
 | Waktu habis | Proposal terlambat | Freeze 21.00. Simulator dapat dibatalkan tanpa memengaruhi proposal |
 | Juri mengira angka simulator adalah hasil uji | Kredibilitas turun | Lencana SIMULASI, label status, kalimat wajib |
-| Juri menilai tim mengganti produk ke software | Melanggar limitasi tangible | Halaman Simpul dan pager, teks pembuka menyebut alat fisik, Lampiran I menjelaskan peran simulator |
+| Juri menilai tim mengganti produk ke software | Melanggar limitasi tangible | Halaman Simpul dan pager, teks pembuka menyebut alat fisik, Lampiran P menjelaskan peran simulator |
 | WebGL gagal di perangkat juri | Halaman utama kosong | Denah 2D otomatis |
 | Tautan butuh login hosting | Juri tidak dapat membuka | Uji incognito, proteksi hosting dimatikan |
 | Penggunaan AI | Wajib dilaporkan | Laporan AI diperbarui dan tim meninjau isi sebelum kirim |
 
 ## 12. Sumber kebenaran
 
-Bila dokumen ini berbeda dengan proposal, proposal yang berlaku: `Semifinal/paper/script/content.py` dan `analysis.json`. Perbedaan dicatat dan ditanyakan kepada tim, tidak diselesaikan diam-diam.
+Bila dokumen ini berbeda dengan proposal, proposal yang berlaku: `Semifinal/paper/script/content.py`, `lampiran2.py`, `analysis.json`, dan `analysis2.json`. Perbedaan dicatat dan ditanyakan kepada tim, tidak diselesaikan diam-diam.

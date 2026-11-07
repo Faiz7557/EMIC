@@ -6,7 +6,7 @@ Versi 1.0, 7 November 2026. Aturan logika ada di [TRD](TRD.md) subbab 5. Tampila
 
 ```mermaid
 flowchart LR
-  Link[Tautan atau QR di Lampiran I] --> Open{Ada ?demo=1}
+  Link[Tautan atau QR di Lampiran P] --> Open{Ada ?demo=1}
   Open -- ya --> Offer[Kartu tawaran demo]
   Open -- tidak --> Ruang
   Offer -- Mulai --> Tour[Demo terpandu 6 langkah]
@@ -86,7 +86,7 @@ Status simpul berjalan terpisah: Normal, Terbatas (bising), atau Luring. Saat Te
 
 **Judul:** "Apa yang terjadi saat seseorang batuk?"
 
-**Kalimat pembuka:** "Ambang lama menangkap **7%** pasien median. Dua tingkat memberi sinyal pada **87%** dan memanggil petugas pada **43%**, dengan **0,94** alarm palsu per jam. Hasil simulasi, belum diukur."
+**Kalimat pembuka:** "Ambang lama menangkap **7%** pasien median. Dua tingkat memberi sinyal pada **87%** dan memanggil petugas pada **43%**, dengan **0,73** alarm palsu per jam. Hasil simulasi, belum diukur."
 
 | Aksi pengguna | Hasil |
 |---|---|
@@ -162,6 +162,7 @@ Keterangan tetap: "Visual ini ilustratif. Simulator tidak memiliki audio dan tid
 | Pilih preset "Abstrak ≥3/10" | Tangkapan 7%, tanda "sesuai proposal" |
 | Pilih preset "Proposal ≥2/15" | Tangkapan 43%, alarm palsu 0,94 per jam, tanda "sesuai proposal" |
 | Pilih preset "1 batuk saja" | Tangkapan 87%, alarm palsu 4,12 per jam, melewati batas ≤1 |
+| Pilih preset "Mode bising ≥3/15" | Untuk ruang yang melewati batas alarm. Seluruh sebaran pasien: tangkapan 26%, alarm palsu 0,09 per jam dengan jeda |
 | Ubah N atau T | Titik pada grafik berpindah, hasil berubah |
 | Ubah asumsi | Tanda berganti menjadi "tersimulasi di peramban" |
 | Pilih frekuensi Q1, Median, Q3 | Nilai 1,2; 2,3; 4,1 batuk per jam |

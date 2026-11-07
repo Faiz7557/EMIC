@@ -1,10 +1,10 @@
 # Implementation Plan: SUAR Simulator
 
-Versi 1.2, 7 November 2026 pukul 18.30. Dokumen ini adalah rencana yang direview melalui Claudex. Rujukan: [PRD](PRD.md), [TRD](TRD.md), [App Flow](APP_FLOW.md), [Design Brief](DESIGN_BRIEF.md).
+Versi 1.3, 7 November 2026 pukul 19.15. Revisi ini mengikuti perubahan proposal setelah review Codex, sehingga approval SHA `3f69864a` hanya berlaku untuk versi 1.2. Dokumen ini adalah rencana yang direview melalui Claudex. Rujukan: [PRD](PRD.md), [TRD](TRD.md), [App Flow](APP_FLOW.md), [Design Brief](DESIGN_BRIEF.md).
 
 ## 1. Tujuan dan penerimaan
 
-Tautan publik SUAR Simulator aktif dan tercantum pada Lampiran I proposal sebelum proposal dikirim.
+Tautan publik SUAR Simulator aktif dan tercantum pada Lampiran P proposal sebelum proposal dikirim.
 
 Selesai berarti:
 
@@ -34,7 +34,7 @@ Peran mengikuti `claudex-loop` dengan `host=claude`, `builder=codex`.
 
 | Agen | Model | Tugas | Batas |
 |---|---|---|---|
-| **Opus Orkestrator** | `claude-opus-5-5`, sesi ini | Pemilik kebutuhan, membagi tugas, arbitrase temuan, merge, menjalankan pembuktian, QA visual, deploy, Lampiran I | Tidak menulis kode fitur, kecuali mengambil alih sesuai subbab 7 |
+| **Opus Orkestrator** | `claude-opus-5-5`, sesi ini | Pemilik kebutuhan, membagi tugas, arbitrase temuan, merge, menjalankan pembuktian, QA visual, deploy, Lampiran P | Tidak menulis kode fitur, kecuali mengambil alih sesuai subbab 7 |
 | **SOL Reviewer** | `gpt-6.1-sol`, effort high | Review independen atas rencana | Read-only |
 | **SOL Foundation** | `gpt-6.1-sol`, effort high | T02 | `workspace-write` pada worktree-nya |
 | **SOL Engine** | `gpt-6.1-sol`, effort high | T03 | Sama |
@@ -144,13 +144,14 @@ Jadwal dirapatkan pada pukul 18.20 karena persiapan terlambat. Freeze tetap 21.0
 | T10 Dasbor dan bukti | SOL UI B | 20.05 | 20.25 | T03 | T07, T06 |
 | T09 Halaman batas audio | SOL UI A | 20.15 | 20.30 | T03, T07 | T10, T11 |
 | T11 Demo terpandu | Sesi SOL UI A terpisah | 20.15 | 20.30 | T07 | T09, T10 |
+| T21 Sinkron proposal | SOL Sync | Setelah T07 | | T06, T07 | T11 |
 | T12 Integrasi | Opus | 20.30 | 20.35 | T06 sampai T11 | |
 | T13 Inspeksi | Inspektur | 20.35 | 20.45 | T12 | T15 |
 | T15 QA visual | Opus | 20.35 | 20.45 | T12 | T13 |
 | T14 Perbaikan | SOL Fix | 20.45 | 21.00 | T13, T15 | |
 | **Freeze** | | | **21.00** | | |
 | T16 Deploy | Opus | 21.00 | 21.15 | T14 | |
-| T17 Lampiran I dan build proposal | Opus | 21.15 | 21.45 | T16 | |
+| T17 Lampiran P dan build proposal | Opus | 21.15 | 21.45 | T16 | |
 | T18 Tanda tangan dan kirim | Tim | 21.45 | 22.30 | T17 | |
 | T19 Hapus Caliber dari repo | Opus | Setelah T18 | | T18, konfirmasi tim | |
 
@@ -293,9 +294,24 @@ Jalankan perintah review. Opus memberi disposisi pada tiap temuan. Putaran kedua
 - **Penerimaan:** demo dimulai dari keadaan reset dan selesai dalam 90 detik. Esc menutup. `#/?demo=1` menampilkan kartu tawaran. Bingkai target benar pada lebar 1366 dan 375 px.
 - **Bukti:** `npm run check`
 
+### T21 Sinkron proposal
+
+- **Agen:** SOL Sync, effort high, timeout 1500 detik.
+- **Latar:** proposal berubah setelah rencana disetujui. Sumber baru: `reference/proposal-content.py`, `reference/proposal-lampiran2.py`, `reference/analysis2.json`. Bila berbeda dengan kode, ikuti sumber ini.
+- **Milik:** `src/sim/engine.ts`, `src/sim/attribution.ts`, dan uji keduanya, `src/ui/denah-2d.tsx`, `src/three/room.ts`, `src/three/Scene3D.tsx`, `src/data/*`, `src/pages/ambang.tsx`, `src/pages/bukti.tsx`, kalimat pembuka `src/pages/ruang.tsx`, `tests/guard.test.ts`.
+- **Kerjakan:**
+  - `ambiguousDb` bawaan menjadi 1,5, juga pada `attribution.ts`. Arsir lantai, legenda, dan teks memakai ΔL < 1,5 dB.
+  - `src/data/analysis.ts` menambah subset `analysis2.json`: `pop`, `pop_n3`, `alarm.sim`, `alarm.sim3`, `attrib_gap`, `g1_hours_for_claim`. Tambah claim sesuai PRD subbab 8.
+  - Kalimat pembuka Ruang tunggu memakai 0,73 alarm palsu per jam.
+  - `src/data/gates.ts` dan halaman Status bukti mengikuti tabel `gerbang` dan `janji` terbaru: tujuh janji, G1 memakai jumlah jam dari `g1_hours_for_claim`, G4 satu minggu senyap dan dua minggu aktif. Asumsi: hapus A5, tambah A7 sesuai PRD subbab 10.
+  - Halaman ambang: tambah preset "Mode bising ≥3/15", kartu "Seluruh sebaran pasien" (49%, 28 sampai 35% penurunan dosis), dan catatan bahwa 0,94 adalah orde pertama sedangkan 0,73 memakai jeda pemicu ulang.
+  - Keterangan ruang menyebut simpul digantung di garis tengah dan bahwa simulator memakai medan bebas tanpa gema.
+- **Penerimaan:** uji golden 800 sel tetap lulus, dan 36,0 diuji dengan ambang eksplisit 3 dB. Titik dengan ΔL 2 dB hanya menaikkan satu zona, titik dengan ΔL 1 dB menaikkan dua zona. Angka tampil sama dengan `analysis2.json`. Teks "3 dB" hanya boleh muncul sebagai riwayat keputusan.
+- **Bukti:** `npm run check`
+
 ### T12 Integrasi (Opus)
 
-Merge seluruh cabang sesuai urutan, selesaikan konflik, jalankan `npm run check`, dan coba alur inti di browser. Hapus worktree setelah selesai.
+Merge seluruh cabang sesuai urutan, selesaikan konflik, jalankan `npm run check`, dan coba alur inti di browser. Bandingkan `reference/` dengan `Semifinal/paper/script`. Bila proposal berubah lagi, laporkan selisihnya kepada tim dan sinkronkan yang memengaruhi aturan atau angka. Hapus worktree setelah selesai.
 
 ### T13 Inspeksi (Inspektur)
 
@@ -319,28 +335,28 @@ Jalankan `vite preview` dan browser bawaan. Periksa Design Brief subbab 12, alur
 
 Deploy keluaran `dist/` setelah izin tim atas publikasi. Uji incognito dan ponsel. Tautan menjadi publik, sehingga tidak ada data pribadi di dalam bundle.
 
-### T17 Lampiran I dan build proposal (Opus)
+### T17 Lampiran P dan build proposal (Opus)
 
 Tim tetap wajib meninjau isi karena ide dan konten utama harus hasil pemikiran peserta.
 
 `build.py` menimpa DOCX dan PDF utama, sehingga proposal saat ini harus dijaga:
 
-1. Salin `Semifinal/paper/` utuh ke `Semifinal/paper-tanpa-lampiran/`, lalu cocokkan SHA256 PDF. Salinan ini adalah proposal cadangan terverifikasi.
-2. Salin `Semifinal/paper/` ke `Semifinal/paper-lampiran-i/`. Langkah berikutnya hanya mengubah folder ini.
-3. Ambil tangkapan layar halaman ruang pada Tingkat 2, simpan sebagai `script/figures/f30_simulator.png`.
-4. Buat QR dengan paket `qrcode` yang sudah terpasang, simpan sebagai `script/figures/f31_simulator_qr.png`.
-5. Tambah di akhir `APPENDIX` pada `script/content.py`:
+1. Pastikan sesi yang menyunting proposal sudah selesai. Salin `Semifinal/paper/` utuh ke `Semifinal/paper-tanpa-lampiran/`, lalu cocokkan SHA256 PDF. Salinan ini adalah proposal cadangan terverifikasi.
+2. Salin `Semifinal/paper/` ke `Semifinal/paper-lampiran-p/`. Langkah berikutnya hanya mengubah folder ini.
+3. Ambil tangkapan layar halaman ruang pada Tingkat 2, simpan sebagai `script/figures/f40_simulator.png`.
+4. Buat QR dengan paket `qrcode` yang sudah terpasang, simpan sebagai `script/figures/f41_simulator_qr.png`.
+5. Tambah setelah Lampiran O. Lampiran I sudah dipakai proposal, jadi simulator menjadi Lampiran P. Periksa dulu cara `build.py` menyusun lampiran terbaru:
 
 ```python
-("h2x", "Lampiran I. Simulator Rancangan"),
+("h2x", "Lampiran P. Simulator Rancangan"),
 ("p", "Untuk memperlihatkan alur rancangan secara interaktif, kami membangun SUAR Simulator yang dapat dibuka di <URL> tanpa login. Simulator menjalankan aturan atribusi zona, sinyal dua tingkat, eskalasi, dan format paket 16 byte yang sama dengan Bab III, Bab IV, dan Lampiran D, tetapi memakai masukan buatan. Simulator tidak menjalankan model TinyML dan tidak memakai mikrofon, sehingga tidak membuktikan kemampuan deteksi. Produk SUAR tetap alat fisik, dan prototipenya dibangun pada tahap final."),
-("fig", "simulator", "f30_simulator.png", "Tampilan SUAR Simulator saat Tingkat 2 di Zona C. Hasil peragaan, bukan hasil uji", 14.0),
+("fig", "simulator", "f40_simulator.png", "Tampilan SUAR Simulator saat Tingkat 2 di Zona C. Hasil peragaan, bukan hasil uji", 14.0),
 ```
 
 6. Tambah QR sebagai gambar kecil setelah itu.
 7. Jangan mengubah pernyataan "tanpa uji purwarupa" pada Status bukti.
 8. Perbarui laporan AI: simulator dibangun dengan bantuan Claude dan Codex.
-9. Jalankan dari `Semifinal/paper-lampiran-i/script`:
+9. Jalankan dari `Semifinal/paper-lampiran-p/script`:
 
 ```bash
 python build.py
@@ -350,8 +366,8 @@ python build.py
 python build.py --surat
 ```
 
-10. Pastikan isi ≤20 halaman, lalu render dan periksa halaman lampiran.
-11. Hanya setelah lulus, jadikan keluaran `Semifinal/paper-lampiran-i/output` sebagai berkas kiriman dan beri tahu tim jalurnya. Folder `Semifinal/paper` tidak berubah.
+10. Isi proposal kini tepat 20 halaman, batas maksimum. Pastikan tetap ≤20, lalu render dan periksa halaman lampiran.
+11. Hanya setelah lulus, jadikan keluaran `Semifinal/paper-lampiran-p/output` sebagai berkas kiriman dan beri tahu tim jalurnya. Folder `Semifinal/paper` tidak berubah.
 
 ### T18 Tanda tangan dan kirim (Tim)
 
@@ -386,8 +402,8 @@ Potong dari atas ke bawah. Proposal tidak boleh terlambat karena simulator.
 | 20.30 dan T11 belum selesai | Ganti demo terpandu dengan tombol "Putar skenario pagi" |
 | 20.30 dan T09 belum selesai | Hanya inspektur paket FR-40, tanpa visual pipa. Bila FR-40 belum ada, tahan publikasi sampai selesai |
 | 20.30 dan T10 belum selesai | Dasbor dilepas dari navigasi. Status bukti tetap wajib |
-| 21.00 dan alur inti belum lulus `npm run check` | **Simulator dibatalkan untuk semifinal.** Lampiran I tidak ditambahkan, proposal dikirim tanpa simulator |
-| 21.45 dan T17 belum selesai | Tanpa Lampiran I. Kirim proposal cadangan terverifikasi di `Semifinal/paper-tanpa-lampiran/output` |
+| 21.00 dan alur inti belum lulus `npm run check` | **Simulator dibatalkan untuk semifinal.** Lampiran P tidak ditambahkan, proposal dikirim tanpa simulator |
+| 21.45 dan T17 belum selesai | Tanpa Lampiran P. Kirim proposal cadangan terverifikasi di `Semifinal/paper-tanpa-lampiran/output` |
 
 **Inti minimum yang wajib ada untuk diterbitkan:** T02, T03, T04, satu tampilan ruang, T07, T08, inspektur paket FR-40, dan halaman Status bukti. Halaman stub tidak boleh tampil di navigasi saat terbit.
 

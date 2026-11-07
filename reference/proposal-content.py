@@ -1,16 +1,20 @@
 """Isi proposal SUAR. Satu sumber untuk DOCX dan PDF.
 Blok: ("h1"|"h2"|"p"|"bul"|"fig"|"tab"|"pb", ...). Rujukan silang: {fig:kunci}, {tab:kunci}. Markup: **tebal**, *miring*."""
 import analysis
+import analysis2
+import lampiran2
 
 R = analysis.main()
+A2 = analysis2.load()
+_CTR = "Tengah, gantung 2 m"
 
 
 def d(x, n=0):
     return f"{x:.{n}f}".replace(".", ",")
 
 
-def pct(x):
-    return f"{x * 100:.0f}%"
+def pct(x, n=0):
+    return f"{x * 100:.{n}f}%".replace(".", ",")
 
 
 def rp(x):
@@ -18,6 +22,7 @@ def rp(x):
 
 
 G, P, TT = R["grid"], R["profiles"], R["two_tier"]
+POP, GAP, TWO, FIN, IMP, CEA, MKT = A2["pop"], A2["attrib_gap"], A2["attrib_two"], A2["fin"], A2["impact"], A2["cea"], A2["market"]
 PARAMS = rp(R["model"]["params"])
 MACS = d(R["model"]["macs"] / 1e6, 2)
 
@@ -28,19 +33,21 @@ FRONT = [
     ("p", "Indonesia menanggung sekitar 10% kasus tuberkulosis (TBC) dunia (WHO, 2025). Di Kota Bandung, pasien rata-rata berkunjung enam kali ke penyedia layanan dan butuh 62 hari sampai terdiagnosis (Lestari dkk., 2020). Selama jeda itu mereka berkali-kali duduk bersama lansia, anak, dan ibu hamil di ruang tunggu. WHO (2022) sudah menganjurkan triase, pemisahan, dan masker bagi orang yang batuk, tetapi anjuran itu masih bergantung pada pengakuan pasien dan pengamatan petugas yang sibuk."),
     ("p", "**SUAR** adalah rancangan sistem IoT yang memberi anjuran WHO tersebut pemicu terukur. Satu simpul sensor per zona kursi mengenali batuk di perangkat, lalu menimpa audionya. Satu batuk memunculkan ajakan mengambil masker; dua batuk dalam 15 menit menggetarkan *pager* petugas. SUAR tidak mendiagnosis, tidak mengenali orang, dan tidak membutuhkan server atau internet. Biaya komponennya sekitar Rp565 ribu per zona."),
     ("p", f"Proposal ini mengembangkan abstrak tahap *preliminary* menjadi rancangan yang dapat langsung dibangun pada tahap final: arsitektur, skematik, *firmware*, model TinyML, *casing*, antarmuka, anggaran teknis, dan proyeksi keuangan. Perhitungan kami juga mengoreksi rancangan awal kami sendiri. Dengan frekuensi batuk pasien TBC yang terlapor (Proaño dkk., 2017), ambang lama ≥3 batuk dalam 10 menit hanya akan menangkap sekitar {pct(G['3_10']['capture'])} pasien median selama 60 menit menunggu. Karena itu kami mengubahnya menjadi dua tingkat sinyal."),
+    ("p", f"Proposal ini juga memuat analisis yang membuat keputusan kami lebih sempit dan lebih dapat diuji. Pada seluruh sebaran pasien, Tingkat 2 terpicu pada sekitar {pct(POP['0.0']['capture'])} sesi dan dosis pengunjung lain turun {pct(POP['0.0']['dose_red'])} sampai {pct(POP['0.5']['dose_red'])} menurut model. Model gema menunjukkan bahwa penentuan zona dari level penuh tidak memenuhi target, sehingga kami beralih ke level awal batuk dan memasang simpul di garis tengah ruang. Model bisnis menunjukkan biaya sekitar Rp{d(A2['per_visit']['100'])} per kunjungan bagi fasilitas, kebutuhan dana awal sekitar Rp{d(-FIN['base']['peak'] / 1e6)} juta, dan pasar pertama pada puskesmas kota berbeban tinggi. Lampiran I sampai O merinci segmentasi, rancangan produk, pengolahan data, dampak, keuangan, implementasi, dan daftar asumsi."),
     ("p", "**Status bukti.** Proposal ini memakai data sekunder, *datasheet*, perhitungan, dan simulasi, tanpa data lapangan dan tanpa uji purwarupa. Setiap angka kinerja ditandai sebagai estimasi atau target, dan uji nyatanya dijadwalkan melalui empat gerbang dengan kriteria yang sudah ditetapkan di Bab V."),
     ("tab", "rubrik", "Tempat setiap kriteria penilaian guidebook dijawab",
      ["Kriteria penilaian", "Bobot", "Bagian proposal"],
-     [["Relevansi dan urgensi masalah", "20", "1.1, 1.2"], ["Analisis akar masalah dan bukti pendukung", "20", "1.3, 1.4, Lampiran A, B"],
-      ["Penerapan metodologi dalam memahami dan merumuskan masalah", "20", "2.1 sampai 2.3"], ["Ketepatan proses analisis", "15", "2.4 sampai 2.6, Bab V"],
-      ["Inovasi dan kebaruan solusi", "15", "1.4, Bab III, Bab IV"], ["Kesesuaian dengan subtema", "5", "1.5, Bab VI"], ["Format dan kejelasan penyajian", "5", "Seluruh naskah"]],
+     [["Relevansi dan urgensi masalah", "20", "1.1, 1.2"], ["Analisis akar masalah dan bukti pendukung", "20", "1.3, 1.4, 5.2, Lampiran A, B, L"],
+      ["Penerapan metodologi dalam memahami dan merumuskan masalah", "20", "2.1 sampai 2.3, Lampiran I"], ["Ketepatan proses analisis", "15", "2.4 sampai 2.6, Bab V, Lampiran K, O"],
+      ["Inovasi dan kebaruan solusi", "15", "1.4, Bab III, Bab IV, Lampiran J"], ["Kesesuaian dengan subtema", "5", "1.5, Bab VI, Lampiran M, N"], ["Format dan kejelasan penyajian", "5", "Seluruh naskah"]],
      [8.4, 1.4, 4.2]),
     ("tab", "ubah", "Perubahan dari tahap preliminary. Ide utama tetap sama: sensor batuk per zona sebagai pemicu kontrol infeksi",
      ["Aspek", "Abstrak", "Proposal", "Alasan"],
      [["Ambang", "≥3 batuk/10 menit", "Tingkat 1: 1 batuk. Tingkat 2: ≥2 batuk/15 menit", "Hasil model frekuensi batuk (2.6)"],
       ["Notifikasi", "Ponsel bergetar", "*Pager* ESP-NOW", "Tidak butuh internet atau server"],
       ["Klaim privasi", "Dijamin perangkat keras", "Privasi berlapis, dapat diaudit", "ESP32-S3 memiliki radio; klaim dipersempit agar tepat"],
-      ["Penurunan paparan", "±80%", "Rentang 7 sampai 49% menurut skenario; 80% sebagai batas atas", "Waktu pemicu kini dimodelkan"],
+      ["Penurunan paparan", "±80%", f"Rentang 7 sampai 49% menurut skenario; rata-rata populasi {pct(POP['0.0']['dose_red'])} sampai {pct(POP['0.5']['dose_red'])}; 80% sebagai batas atas", "Waktu pemicu kini dimodelkan"],
+      ["Penentuan zona", "Belum dirinci", "Level 50 ms awal, rata-rata dua batuk, simpul digantung di garis tengah", "Model gema ruangan (3.2)"],
       ["Validasi primer", "Dijadwalkan semifinal", "Dijadwalkan pada gerbang G3 dan G4", "Menunggu izin institusi; proposal berfokus pada rancangan"]],
      [2.4, 3.0, 4.6, 4.0]),
 ]
@@ -95,9 +102,11 @@ BODY = [
     ("p", "Kami memakai dua kerangka yang saling mengisi. *Design Thinking* (Lewrick dkk., 2018) dipakai untuk memahami masalah, dan model V rekayasa sistem (Forsberg & Mooz, 1991) dipakai agar setiap kebutuhan punya cara verifikasi. {fig:metodologi} menunjukkan posisinya. Sisi kiri dan dasar V telah kami kerjakan dalam proposal ini; sisi kanan adalah rencana uji yang kriterianya kami tetapkan sekarang, sebelum ada angka yang dapat memengaruhi penilaian kami."),
     ("fig", "metodologi", "f05_metodologi.png", "Design Thinking pada sisi kiri model V dan gerbang verifikasi pada sisi kanan", 14.0),
     ("p", "Proposal ini tidak memuat wawancara atau observasi. Tahap *empathize* dan *define* bersandar pada data sekunder, sehingga kebutuhan yang kami tulis masih berstatus hipotesis yang berdasar. Pengujiannya dilakukan melalui wawancara dan observasi pada gerbang G3 dan G4, setelah izin institusi diperoleh."),
-    ("h2", "2.2 Empathize dan define"),
+    ("h2", "2.2 Empathize, define, dan segmentasi"),
     ("p", "Kami memetakan pengalaman pengguna dengan alat yang dianjurkan modul *Design Thinking* panitia. Peta pemangku kepentingan (Lampiran A) menunjukkan siapa yang paling terdampak. {fig:empati} memuat peta empati petugas dan peta perjalanan pengunjung. Tahap menunggu dan batuk menjadi titik intervensi karena di situlah paparan terjadi tanpa satu pun tindakan atau catatan. Isi peta empati masih berupa hipotesis dari data sekunder, sehingga pernyataan seperti sungkan menegur orang harus dikonfirmasi lewat wawancara pada G3."),
     ("fig", "empati", "f24_empati.png", "Persona, peta empati petugas, dan peta perjalanan pengunjung. Hipotesis dari data sekunder", 14.0),
+    ("p", f"Keputusan adopsi melibatkan empat peran yang berbeda: petugas sebagai pengguna, kepala fasilitas sebagai pembeli, Dinkes sebagai pembiaya, dan pengunjung sebagai penerima manfaat (Lampiran I). {{fig:segmen}} menilai enam segmen pasar. Kami memilih puskesmas kota berbeban tinggi sebagai pasar pertama dan klinik pratama swasta berjaringan sebagai pasar kedua, karena 74,6% pasien memulai dari penyedia swasta atau informal (Lestari dkk., 2020). Dari {rp(MKT['tam_units'])} fasilitas, kami menargetkan 275 pada tahun ketiga. Pasar ini tidak besar, sehingga SUAR kami rancang sebagai usaha sosial yang berkelanjutan."),
+    ("fig", "segmen", "f34_segmen.png", "Kiri: skor segmen dan uji bobot. Kanan: ukuran pasar, perhitungannya pada Lampiran I. Penilaian dan skenario tim, belum divalidasi", 12.5),
     ("h2", "2.3 Kriteria desain"),
     ("p", "{tab:kriteria} menurunkan tujuh kriteria dari hambatan pada Bab I. Kriteria inilah yang menentukan bentuk produk, termasuk keputusan untuk menolak beberapa pilihan yang secara teknis lebih canggih."),
     ("tab", "kriteria", "Tujuh kriteria desain, asal, dan konsekuensinya",
@@ -128,48 +137,50 @@ BODY = [
      [4.1, 4.1, 1.7, 2.8, 1.3]),
     ("h2", "2.6 Menentukan ambang pemicu: koreksi atas rancangan awal"),
     ("p", "Abstrak kami mengusulkan pemicu ≥3 batuk dalam 10 menit. Ketika kami memodelkannya, angka itu ternyata tidak memadai. Proaño dkk. (2017) melaporkan median 2,3 episode batuk per jam pada pasien TBC sebelum pengobatan (IQR 1,2 sampai 4,1). Kami menyimulasikan 20.000 sesi tunggu 60 menit dengan proses Poisson dan sensitivitas deteksi 90,4%, lalu menghitung laju alarm palsu orde pertama dari 1,03 suara palsu per jam per zona untuk ruang empat zona."),
-    ("fig", "ambang", "f16_ambang.png", "Kiri: tangkapan pasien median dan alarm palsu per jam per ruang untuk setiap pasangan ambang. Kanan: tangkapan menurut frekuensi batuk. Hasil simulasi, bukan hasil uji", 14.0),
+    ("fig", "ambang", "f16_ambang.png", "Kiri: tangkapan pasien median dan alarm palsu per jam per ruang untuk setiap pasangan ambang. Kanan: tangkapan menurut frekuensi batuk. Hasil simulasi, bukan hasil uji", 13.0),
     ("p", f"{{fig:ambang}} memperlihatkan hasilnya. Ambang lama hanya menangkap {pct(G['3_10']['capture'])} pasien median. Ambang satu batuk menangkap {pct(G['1_10']['capture'])}, tetapi menghasilkan {d(G['1_10']['fa_room_h'], 1)} alarm palsu per jam, terlalu sering untuk menggetarkan petugas. Pasangan ≥2 batuk dalam 15 menit menangkap {pct(G['2_15']['capture'])} dengan {d(G['2_15']['fa_room_h'], 2)} alarm palsu per jam, yang masih memenuhi batas ≤1 per jam. Karena tidak ada satu ambang yang unggul di kedua sisi, kami memecah sinyal menjadi **dua tingkat**:"),
     ("bul", ["**Tingkat 1, ajakan (1 batuk).** LED zona menyala lembut dan papan mengajak semua orang di zona itu mengambil masker. Petugas tidak diganggu, sehingga alarm palsu berbiaya rendah.",
              "**Tingkat 2, tindakan (≥2 batuk dalam 15 menit).** LED amber menyala dan *pager* bergetar. Petugas menawarkan masker, menyaring gejala sesuai alur nasional, dan mengarahkan ke jalur cepat."]),
     ("p", f"Tiga catatan membatasi kesimpulan ini. Poisson mengabaikan kecenderungan batuk datang berkelompok, sehingga angka tangkapan untuk N = 2 kemungkinan lebih rendah daripada kenyataan. Tangkapan naik tajam pada pasien yang sering batuk ({pct(P['Q3']['2_15']['capture'])} pada kuartil 3), dan Proaño dkk. (2017) mencatat frekuensi lebih tinggi pada beban bakteri lebih besar. SUAR juga akan terpicu oleh batuk non-TBC, dan ini memang dikehendaki karena anjuran masker WHO berlaku bagi orang batuk secara umum. Nilai ambang tetap dapat dikalibrasi per ruangan dan akan dipastikan pada G3."),
+    ("p", f"Kami kemudian memperluas model dari tiga titik menjadi seluruh sebaran pasien. {{fig:populasi}} menunjukkan bahwa rata-rata populasi menghasilkan tangkapan Tingkat 2 sebesar {pct(POP['0.0']['capture'])}, dan hasilnya sangat bergantung pada lama menunggu. Bila satu episode berisi rata-rata 1,5 batuk, tangkapan naik menjadi {pct(A2['pop_burst']['1.5']['capture'])}, sehingga Poisson memang konservatif. Dengan jeda pemicu ulang 15 menit, laju alarm palsu turun menjadi {d(A2['alarm']['sim'][2], 2)} per jam, tetapi toleransinya hanya sampai {d(A2['alarm_be_sim'], 2)} suara palsu per jam per zona. Karena itu kami menambahkan mode bising ≥3 batuk/15 menit untuk ruang yang melewati batas, dengan harga tangkapan turun menjadi {pct(A2['pop_n3']['capture'])}. Rincian dan beban kerja petugas ada di Lampiran K."),
+    ("fig", "populasi", "f30_populasi.png", "Kiri: peluang Tingkat 2 menurut frekuensi batuk dan lama menunggu. Kanan: rata-rata seluruh sebaran pasien. Hasil simulasi, bukan hasil uji", 14.0),
 
     # ==================== BAB III ====================
     ("h1", "BAB III ARSITEKTUR SISTEM"),
     ("h2", "3.1 Empat lapis tanpa server"),
     ("p", "{fig:arsitektur} menunjukkan empat lapis SUAR. Lapis 1 mendengar dan memutuskan di tiap simpul. Lapis 2 mengirim metadata lewat ESP-NOW, yang tidak memerlukan router dan menyediakan enkripsi CCMP (Espressif, 2026c). Lapis 3 adalah koordinator: Simpul A mendapat peran tambahan untuk menyatukan kejadian, menentukan zona, menjalankan logika dua tingkat, menyimpan log, dan menyajikan dasbor melalui SoftAP. Lapis 4 adalah titik sentuh manusia. Batas ESP-NOW sebanyak 20 perangkat berpasangan dan 7 *peer* terenkripsi bawaan (dapat dinaikkan sampai 17) cukup untuk satu ruang berisi empat simpul dan satu *pager*."),
-    ("fig", "arsitektur", "f07_arsitektur.png", "Arsitektur empat lapis SUAR. Simpul Zona C ditandai amber sebagai contoh zona yang terpicu", 14.0),
+    ("fig", "arsitektur", "f07_arsitektur.png", "Arsitektur empat lapis SUAR. Simpul Zona C ditandai amber sebagai contoh zona yang terpicu", 13.0),
     ("h2", "3.2 Zona dan atribusi"),
-    ("p", f"Karena bekerja per zona, SUAR tidak membutuhkan lokalisasi arah suara yang rumit. Tiap simpul melaporkan level batuknya, dan koordinator menyatukan laporan dalam rentang ±300 ms menjadi satu kejadian. {{fig:denah}} memetakan aturan ini pada ruang tunggu 10 x 5 m dengan empat simpul setinggi 2 m, memakai model medan bebas. Pada {d(R['attrib']['amb_pct'])}% luas lantai selisih level di bawah 3 dB, sehingga kedua zona ikut ditandai. Kami menerima pertukaran ini secara sadar: akibat terburuknya adalah masker ditawarkan ke satu zona tambahan. Gema ruangan belum termasuk dalam model dan akan diukur pada G3."),
+    ("p", f"Karena bekerja per zona, SUAR tidak membutuhkan lokalisasi arah suara yang rumit. Tiap simpul melaporkan level batuknya, dan koordinator menyatukan laporan dalam rentang ±300 ms menjadi satu kejadian. {{fig:denah}} memetakan aturan ini pada ruang tunggu 10 x 5 m dengan empat simpul setinggi 2 m di garis tengah, memakai model medan bebas. Pada {d(R['attrib']['amb_pct'])}% luas lantai selisih level di bawah 3 dB, sehingga kedua zona ikut ditandai. Kami menerima pertukaran ini secara sadar: akibat terburuknya adalah masker ditawarkan ke satu zona tambahan."),
     ("fig", "denah", "f08_denah.png", "Peta atribusi zona hasil perhitungan: warna menunjukkan simpul terkeras, arsir menunjukkan posisi yang ditandai ke dua zona", 14.0),
+    ("p", f"Peta tersebut belum memperhitungkan gema, dan ketika gema kami masukkan, hasilnya berubah. {{fig:atribusi}} menunjukkan bahwa penentuan zona dari level penuh hanya mencapai {pct(A2['attrib'][_CTR]['1.0']['full']['tagged'])}, di bawah target 80%, karena jarak kritis ruang hanya {d(A2['acoustics']['1.0']['dc'], 2)} m. Kami mengubah rancangan: level diukur pada 50 ms awal batuk, zona Tingkat 2 ditentukan dari rata-rata minimal dua batuk, dan aturan dua zona diperketat menjadi ΔL <1,5 dB. Hasil modelnya {pct(GAP['1.5']['tagged'])} zona benar tertandai, dengan dua zona menyala pada {pct(GAP['1.5']['two_zone'])} kejadian. Model ini juga menjawab cara memasang: simpul digantung atau dipasang pada tiang di garis tengah, karena posisi pada dinding memberi hasil lebih rendah ({pct(TWO['Satu dinding panjang']['1.0']['tagged'])}). Semua angka ini berstatus model sampai diukur pada G3."),
+    ("fig", "atribusi", "f32_atribusi.png", "Atribusi zona menurut posisi pasang dan fitur level, serta pengaruh aturan dua zona. Hasil simulasi dengan model gema Sabine", 14.0),
     ("h2", "3.3 Satu kejadian dari awal sampai akhir"),
     ("p", "{fig:alur} mengikuti satu kejadian. Pukul 09.15 seorang pengunjung di Zona C batuk. Simpul C mengenalinya dalam waktu kurang dari dua detik, mengirim metadata, lalu menimpa audionya. Koordinator menandai Tingkat 1, lampu zona menyala lembut, dan papan mengajak mengambil masker. Pukul 09.22 batuk kedua terdengar dari zona yang sama. Tingkat 2 aktif, LED amber menyala, dan *pager* Sari bergetar dengan LED C. Ia menawarkan masker kepada seluruh zona, menyaring gejala sesuai alur nasional, mengarahkan terduga ke jalur cepat, lalu menekan tombol. Waktu responsnya tercatat di dasbor. Bila tiga menit berlalu tanpa tombol, *pager* bergetar lagi."),
-    ("fig", "alur", "f09_alur.png", "Diagram alir lintas peran untuk satu kejadian, dari batuk sampai data mutu bagi pengelola", 14.0),
+    ("fig", "alur", "f09_alur.png", "Diagram alir lintas peran untuk satu kejadian, dari batuk sampai data mutu bagi pengelola", 13.0),
     ("p", "{fig:pipa} memperbesar bagian yang paling sensitif, yaitu batas audio. Di sisi kiri batas, suara hanya hidup di memori kerja selama satu detik. Di sisi kanan, yang tersisa hanya kode zona, waktu, jumlah batuk, level relatif, dan status."),
     ("fig", "pipa", "f10_pipa.png", "Pipa pemrosesan dan batas audio. Contoh isi paket ditampilkan sebagai teks; aslinya biner 16 byte", 14.0),
 
     ("h2", "3.4 Protokol komunikasi"),
-    ("p", "{fig:sekuens} menunjukkan pertukaran pesan untuk kejadian yang sama. Koordinator menyiarkan waktu tiap 10 detik agar laporan antarsimpul dapat disatukan. Setiap EVENT harus dibalas ACK, dan tanpa ACK simpul mengirim ulang sampai tiga kali. Detak 30 detik membuat simpul yang mati terlihat di dasbor, sehingga kegagalan tidak tersembunyi. Paketnya berukuran tetap 16 byte (Lampiran D), jauh di bawah batas 250 byte ESP-NOW v1.0 (Espressif, 2026c)."),
-    ("fig", "sekuens", "f26_sekuens.png", "Diagram urutan pesan antara simpul, koordinator, pager, dan dasbor", 13.5),
+    ("p", "{fig:sekuens} pada Lampiran D menunjukkan pertukaran pesan untuk kejadian yang sama. Koordinator menyiarkan waktu tiap 10 detik agar laporan antarsimpul dapat disatukan. Setiap EVENT harus dibalas ACK, dan tanpa ACK simpul mengirim ulang sampai tiga kali. Detak 30 detik membuat simpul yang mati terlihat di dasbor, sehingga kegagalan tidak tersembunyi. Paketnya berukuran tetap 16 byte (Lampiran D), jauh di bawah batas 250 byte ESP-NOW v1.0 (Espressif, 2026c)."),
 
     # ==================== BAB IV ====================
     ("h1", "BAB IV RANCANGAN RINCI"),
     ("h2", "4.1 Perangkat keras"),
     ("p", "{fig:skematik} adalah skematik simpul dan *pager*, dan pemetaan pin lengkapnya ada di Lampiran D. Pada simpul, cincin WS2812 diberi tegangan sekitar 4,3 V melalui dioda agar logika 3,3 V dari ESP32-S3 terbaca andal tanpa tambahan IC penggeser level. ESP32-S3 kami pilih karena memiliki dua inti, instruksi vektor untuk inferensi, dan SRAM internal 512 kB (Espressif, 2026a). INMP441 memberi keluaran I2S digital dengan SNR 61 dBA dan konsumsi 1,4 mA (InvenSense, 2014), sehingga simpul tidak memerlukan rangkaian analog. *Pager* memakai ESP32-C3 yang lebih murah; dengan arus RX Wi-Fi 84 mA (Espressif, 2026b), baterai 1000 mAh bertahan sekitar sembilan jam, cukup untuk satu hari layanan."),
-    ("fig", "skematik", "f11_skematik.png", "Skematik simpul zona dan pager petugas (rancangan, belum dirakit)", 14.0),
+    ("fig", "skematik", "f11_skematik.png", "Skematik simpul zona dan pager petugas (rancangan, belum dirakit)", 13.0),
     ("h2", "4.2 Casing"),
-    ("p", "{fig:casing} menunjukkan rancangan *casing* cetak 3D. Bentuk bundar dipilih agar cincin LED terbaca dari segala arah dan alat tampak seperti lampu penanda, jauh dari kesan kamera atau alat perekam. Lubang akustik berada di sisi penutup agar mikrofon terlindung dari sentuhan, sedangkan tombol besar di tengah dapat ditekan tanpa melihat. Pada *pager*, empat LED berlabel langsung menunjukkan zona tanpa memerlukan layar."),
-    ("fig", "casing", "f12_casing.png", "Kiri: susunan terurai simpul zona. Kanan: simpul terpasang dan pager. Render konsep, bukan foto purwarupa", 14.0),
+    ("p", "{fig:casing} menunjukkan rancangan *casing* cetak 3D. Bentuk bundar dipilih agar cincin LED terbaca dari segala arah dan alat tampak seperti lampu penanda, jauh dari kesan kamera atau alat perekam. Lubang akustik berada di sisi penutup agar mikrofon terlindung dari sentuhan, sedangkan tombol besar di tengah dapat ditekan tanpa melihat. Pada *pager*, empat LED berlabel langsung menunjukkan zona tanpa memerlukan layar. Alasan setiap pilihan bentuk, bahasa lampu, dan peta layanan dirinci pada Lampiran J."),
+    ("fig", "casing", "f12_casing.png", "Kiri: susunan terurai simpul zona. Kanan: simpul terpasang dan pager. Render konsep, bukan foto purwarupa", 12.5),
     ("h2", "4.3 Firmware"),
     ("p", "{fig:firmware} memuat mesin keadaan dan pembagian tugas. Jalur sinyal yang bertenggat ketat berjalan di Core 1, sedangkan komunikasi dan antarmuka di Core 0, sehingga pengiriman ulang tidak mengganggu pengambilan audio. Keadaan **pendengaran terbatas** adalah status ketiga yang kami anggap penting: saat bising melewati ambang atau mikrofon tidak memberi sinyal, simpul menyatakannya di dasbor, sehingga petugas tahu alat sedang tidak dapat diandalkan. Kegagalan seperti ini tidak boleh tampak sama dengan kondisi aman."),
-    ("fig", "firmware", "f13_firmware.png", "Mesin keadaan simpul dan pembagian tugas FreeRTOS pada dua inti", 14.0),
+    ("fig", "firmware", "f13_firmware.png", "Mesin keadaan simpul dan pembagian tugas FreeRTOS pada dua inti", 13.0),
     ("h2", "4.4 Model TinyML"),
-    ("p", f"YAMNet memiliki sekitar 3,7 juta bobot dan 69,2 juta perkalian per bingkai (Plakal & Ellis, 2020), terlalu besar untuk berjalan terus-menerus berdampingan dengan radio. Model ini kami pakai sebagai guru: CNN kecil berbasis konvolusi terpisah kedalaman (Howard dkk., 2017) belajar dari label lunaknya melalui distilasi (Hinton dkk., 2015), lalu dikuantisasi ke int8 (Jacob dkk., 2018). {{fig:model}} merinci hasilnya: {PARAMS} parameter dan {MACS} juta MAC, sekitar 150 kali lebih sedikit bobot daripada YAMNet. Kinerja model kecil ini belum terukur, dan itulah pertanyaan pertama yang dijawab G1."),
-    ("fig", "model", "f14_model.png", "Rantai pelatihan dan topologi CNN int8. Tampilan spektrogram bersifat ilustratif", 14.0),
+    ("p", f"YAMNet memiliki sekitar 3,7 juta bobot dan 69,2 juta perkalian per bingkai (Plakal & Ellis, 2020), terlalu besar untuk berjalan terus-menerus berdampingan dengan radio. Model ini kami pakai sebagai guru: CNN kecil berbasis konvolusi terpisah kedalaman (Howard dkk., 2017) belajar dari label lunaknya melalui distilasi (Hinton dkk., 2015), lalu dikuantisasi ke int8 (Jacob dkk., 2018). {{fig:model}} pada Lampiran H merinci hasilnya: {PARAMS} parameter dan {MACS} juta MAC, sekitar 150 kali lebih sedikit bobot daripada YAMNet. Kinerja model kecil ini belum terukur, dan itulah pertanyaan pertama yang dijawab G1."),
     ("p", "Data positif berasal dari COUGHVID (Orlandic dkk., 2021), data negatif dari AudioSet (Gemmeke dkk., 2017) dan bising lokal. Pembagian data dilakukan per orang agar suara yang sama tidak muncul di sisi latih dan uji. Akurasi per klip tidak kami pakai sebagai metrik utama karena dapat menipu pada audio yang hampir seluruhnya bukan batuk. Yang kami ukur adalah sensitivitas per kejadian dan alarm palsu per jam pada audio kontinu, ditambah uji negatif sulit: tawa, bersin, deham, benda jatuh, televisi, dan tangis anak."),
     ("h2", "4.5 Antarmuka"),
     ("p", "{fig:antarmuka} menampilkan dua antarmuka yang paling sering dilihat orang. Dasbor menjawab tiga pertanyaan pengelola: zona mana yang perlu perhatian, kapan puncak batuk, dan seberapa cepat petugas merespons. Papan informasi menjelaskan alat kepada pengunjung dengan bahasa sehari-hari, karena kepercayaan dibangun dari keterbukaan sekaligus dari desain teknis. Kata-katanya akan diuji pada G3."),
-    ("fig", "antarmuka", "f15_antarmuka.png", "Rancangan dasbor web lokal dan papan informasi pengunjung. Angka pada dasbor bersifat ilustratif", 14.0),
+    ("fig", "antarmuka", "f15_antarmuka.png", "Rancangan dasbor web lokal dan papan informasi pengunjung. Angka pada dasbor bersifat ilustratif", 13.0),
 
     ("h2", "4.6 Pemasangan dan prosedur petugas"),
     ("p", "Rancangan teknis hanya berguna bila dapat dijalankan staf klinik tanpa bantuan ahli. {fig:pasang} merinci empat langkah pemasangan dan kartu prosedur petugas. Kartu ini sengaja menempel pada alur nasional yang sudah ada, sehingga SUAR tidak menambah prosedur klinis baru. Tugas tambahan petugas hanya menekan satu tombol."),
@@ -177,45 +188,48 @@ BODY = [
 
     # ==================== BAB V ====================
     ("h1", "BAB V ANALISIS KELAYAKAN IMPLEMENTASI"),
+    ("p", "{tab:telos} merangkum penilaian kelayakan dari lima sisi. Status layak di sini berarti hitungan dan bukti sekunder mendukung, dan belum berarti sudah terbukti di lapangan. Daftar asumsi dan temuan yang melemahkan rancangan kami sendiri ada di Lampiran O."),
+    ("tab", "telos", "Ringkasan kelayakan TELOS: bukti hari ini dan risiko yang tersisa",
+     ["Sisi", "Bukti hari ini", "Status", "Risiko terbesar"],
+     [["Teknis", f"Latensi {d(R['latency_total'] / 1000, 2)} detik, memori {R['ram_total']:.0f} dari 512 kB, atribusi model {pct(GAP['1.5']['tagged'])}", "Layak, menunggu G1 sampai G3", "Kinerja model kecil di ruang nyata"],
+      ["Ekonomi", f"Kontribusi {pct(A2['unit']['cm_pct'][2])} per paket pada tahun 3, Rp{d(A2['per_visit']['100'])} per kunjungan, dana awal ±Rp{d(-FIN['base']['peak'] / 1e6)} juta", "Layak bersyarat", "Adopsi dan jalur belanja"],
+      ["Hukum dan etika", "Tanpa rekaman dan tanpa skor individu; KMK 951/2026 dan UU PDP dipetakan", "Layak, perlu konfirmasi", "Tafsir kategori alat kesehatan"],
+      ["Operasional", f"{d(min(w['total'] for w in A2['workload']))} sampai {d(max(w['total'] for w in A2['workload']))} alarm per hari, satu tombol, pasang ≤15 menit (target)", "Layak, hipotesis", "Kelelahan alarm, stigma zona"],
+      ["Jadwal", "Purwarupa 14 hari dengan jalur kritis dan rencana cadangan", "Layak", "Keterlambatan komponen"]],
+     [2.2, 6.2, 2.6, 3.0]),
     ("h2", "5.1 Kelayakan teknis"),
     ("p", f"{{fig:anggaran}} menjumlahkan tiga anggaran. **Latensi** kasus terburuk adalah {d(R['latency_total'] / 1000, 2)} detik, jauh di bawah target 10 detik. Waktu inferensi 54 ms kami ambil sebagai batas atas dari tolok ukur *person detection* dengan ESP-NN pada ESP32-S3 (Espressif, 2026d), model yang lebih besar daripada model kami. **Memori** koordinator terpakai {R['ram_total']:.0f} dari 512 kB, belum termasuk PSRAM 8 MB sebagai cadangan. Model hanya memakan sekitar {R['model_flash_kb']:.0f} kB *flash*. **Daya** per simpul sekitar {d(R['node_W'], 2)} W; arus radio 88 mA berasal dari *datasheet* (Espressif, 2026a) dan sisanya estimasi. Satu paket hanya menghabiskan {d(R['kit_kWh_yr'])} kWh per tahun. Seluruh angka ini perlu dipastikan dengan pengukuran pada G1 dan G2."),
-    ("fig", "anggaran", "f17_anggaran.png", "Anggaran latensi, memori, dan daya simpul. Perhitungan tim dari datasheet dan estimasi, bukan hasil pengukuran", 14.0),
+    ("fig", "anggaran", "f17_anggaran.png", "Anggaran latensi, memori, dan daya simpul. Perhitungan tim dari datasheet dan estimasi, bukan hasil pengukuran", 13.0),
     ("h2", "5.2 Perkiraan dampak"),
-    ("p", f"Model Wells-Riley (Riley dkk., 1978) hampir linear terhadap waktu paparan pada dosis rendah, sehingga kami memakainya untuk membandingkan fraksi dosis, dengan parameter pada Lampiran E. {{fig:paparan}} menunjukkan dua hal. Bila pemicu terjadi pada menit ke-10, dosis pengunjung lain turun {d(R['best_case_dose_red'] * 100, 1)}%: inilah angka pada abstrak kami, yang sekarang kami baca sebagai skenario terbaik. Dengan waktu pemicu yang disimulasikan dari frekuensi batuk, penurunannya {pct(TT['Q1']['0.0']['dose_red'])} sampai {pct(TT['Q3']['0.0']['dose_red'])} untuk Tingkat 2 saja, dan {pct(TT['Q1']['0.5']['dose_red'])} sampai {pct(TT['Q3']['0.5']['dose_red'])} bila Tingkat 1 ditambahkan dengan asumsi separuh orang di zona mengikuti ajakan masker. Angka kepatuhan itu asumsi, dan pilot akan mengukurnya."),
-    ("fig", "paparan", "f18_paparan.png", "Kiri: penurunan dosis menurut waktu pemicu. Kanan: perkiraan penurunan dosis dari simulasi 20.000 sesi tunggu. Hasil pemodelan", 14.0),
+    ("p", f"Model Wells-Riley (Riley dkk., 1978) hampir linear terhadap waktu paparan pada dosis rendah, sehingga kami memakainya untuk membandingkan fraksi dosis, dengan parameter pada Lampiran E. {{fig:paparan}} menunjukkan dua hal. Bila pemicu terjadi pada menit ke-10, dosis pengunjung lain turun {d(R['best_case_dose_red'] * 100, 1)}%: inilah angka pada abstrak kami, yang sekarang kami baca sebagai skenario terbaik. Dengan waktu pemicu yang disimulasikan dari frekuensi batuk, penurunannya {pct(TT['Q1']['0.0']['dose_red'])} sampai {pct(TT['Q3']['0.0']['dose_red'])} untuk Tingkat 2 saja, dan {pct(TT['Q1']['0.5']['dose_red'])} sampai {pct(TT['Q3']['0.5']['dose_red'])} bila Tingkat 1 ditambahkan dengan asumsi separuh orang di zona mengikuti ajakan masker. Angka kepatuhan itu asumsi, dan pilot akan mengukurnya. Pada rata-rata seluruh sebaran pasien, penurunannya {pct(POP['0.0']['dose_red'])} untuk Tingkat 2 saja, dan {pct(POP['0.27']['dose_red'])} sampai {pct(POP['0.5']['dose_red'])} bila Tingkat 1 ditambahkan dengan kepatuhan 27% (Longtin dkk., 2009) sampai 50%."),
+    ("fig", "paparan", "f18_paparan.png", "Kiri: penurunan dosis menurut waktu pemicu. Kanan: perkiraan penurunan dosis dari simulasi 20.000 sesi tunggu. Hasil pemodelan", 13.0),
     ("p", "Angka tersebut adalah dosis relatif dalam satu sesi tunggu, belum berupa penurunan kasus TBC. Kami sengaja tidak mengklaim penurunan insidensi. McCreesh dkk. (2022) memperkirakan pengendalian infeksi di klinik dapat menurunkan insidensi komunitas 3,4 sampai 8,0%, tetapi itu berlaku untuk paket pengendalian infeksi di KwaZulu-Natal, bukan untuk SUAR. Manfaat yang dapat langsung diukur saat pilot adalah waktu respons, proporsi pasien batuk bermasker, dan rujukan TCM dari ruang tunggu."),
+    ("p", f"Untuk memeriksa besaran masalahnya, kami menyusun simulasi Monte Carlo 200.000 undian dari kasus nasional, kunjungan, ventilasi, dan laju quanta (Lampiran L). {{fig:triangulasi}} memperlihatkan hasilnya: paparan ruang tunggu menyumbang median {pct(IMP['share']['p50'], 1)} kasus TBC pada generasi pertama (persentil 5 sampai 95: {pct(IMP['share']['p5'], 1)} sampai {pct(IMP['share']['p95'], 1)}), lebih rendah daripada 7,6% dari KwaZulu-Natal. Per fasilitas, SUAR berpotensi mencegah median {d(CEA['averted']['p50'], 2)} kasus per tahun, dengan biaya per kasus {d(CEA['cost_per']['p50'] / 1e6, 1)} juta rupiah. Temuan ini membatasi klaim kami. SUAR rata-rata tidak balik modal dari biaya pengobatan yang terhindar, sehingga nilainya kami letakkan pada perlindungan pengunjung, data mutu, dan penemuan kasus, serta paling kuat pada fasilitas berbeban tinggi. Pertukaran udara menjadi parameter terbesar kedua, jadi pilot juga akan mengukur ventilasi."),
+    ("fig", "triangulasi", "f33_triangulasi.png", "Kiri: kepekaan estimasi terhadap setiap parameter. Kanan: pemeriksaan kewajaran terhadap literatur dan PDB per kapita. Hasil model, bukan klaim dampak", 14.0),
     ("h2", "5.3 Risiko, keamanan, dan regulasi"),
     ("p", "FMEA pada {fig:fmea} memeringkat mode kegagalan; rincian skor ada di Lampiran F. Batuk terlewat tetap menjadi risiko tertinggi setelah mitigasi, karena dua batuk dalam 15 menit tidak selalu terjadi. Karena itu SUAR melengkapi triase verbal di loket dan tidak menggantikannya."),
-    ("fig", "fmea", "f19_fmea.png", "Risk Priority Number sebelum mitigasi dan target setelah mitigasi. Penilaian tim, diperbarui setelah uji", 14.0),
+    ("fig", "fmea", "f19_fmea.png", "Risk Priority Number sebelum mitigasi dan target setelah mitigasi. Penilaian tim, diperbarui setelah uji", 12.5),
     ("p", "Pada abstrak kami menulis bahwa privasi dijamin perangkat keras. Klaim itu terlalu luas, karena ESP32-S3 memiliki radio dan jaminannya tetap bergantung pada *firmware*. Kami menggantinya dengan privasi berlapis pada {fig:keamanan}, yang mengacu pada praktik keamanan IoT ETSI EN 303 645 (ETSI, 2020) dan dapat diperiksa pihak ketiga. Secara regulasi, KMK 951/2026 menggolongkan perangkat lunak sebagai alat kesehatan bila mengolah data pasien individual, termasuk memberi skor risiko penyakit (Kemenkes, 2026; Legawa, 2026). SUAR hanya mengolah data agregat zona, sehingga dirancang di luar kategori itu. Statusnya akan kami konfirmasi ke Kemenkes sebelum pilot, bersama sertifikasi perangkat radio SDPPI, izin institusi, dan persetujuan komisi etik."),
-    ("fig", "keamanan", "f20_keamanan.png", "Ancaman, kendali berlapis, dan sisa risiko privasi", 14.0),
+    ("fig", "keamanan", "f20_keamanan.png", "Ancaman, kendali berlapis, dan sisa risiko privasi", 13.0),
     ("h2", "5.4 Kelayakan ekonomi"),
     ("p", f"Satu paket berisi empat simpul dan satu *pager* bernilai sekitar Rp{d(R['kit_hw'] / 1e6, 2)} juta dalam komponen (Lampiran C), setara {R['kit_vs_umk_days']:.0f} hari UMK Surabaya 2026 sebesar Rp{rp(R['umk'])} per bulan (Bisnis.com, 2025). Listriknya sekitar Rp{rp(round(R['kit_cost_yr'], -3))} per tahun dengan tarif Rp1.444,70 per kWh (Metro TV, 2026). {{fig:biaya}} membandingkan biaya kepemilikan tiga tahun. SUAR tidak menggantikan petugas, jadi perbandingan dengan gaji perlu dibaca sebagai gambaran besaran: SUAR memberi pengamatan terus-menerus dengan biaya yang jauh lebih kecil daripada menambah satu orang."),
-    ("fig", "biaya", "f21_biaya.png", "Kiri: biaya kepemilikan tiga tahun. Kanan: proyeksi skenario tiga tahun. Seluruh angka proyeksi adalah asumsi tim (Lampiran G)", 14.0),
-    ("p", f"Proyeksi memakai harga paket Rp{d(R['price'] / 1e6, 1)} juta dan layanan tahunan Rp{rp(R['service'])} untuk kalibrasi serta pembaruan *firmware*. Dengan 275 paket terpasang pada tahun ketiga, setara {d(R['share_y3'] * 100, 1)}% dari 10.268 puskesmas (GoodStats, 2025) dan belum menghitung klinik swasta, usaha ini mencapai laba operasi positif. Semua asumsinya belum divalidasi dengan calon pembeli, jadi angka ini menunjukkan apa yang harus benar agar model bisnisnya berjalan. {{fig:peran}} memisahkan penerima manfaat, operator, pengambil keputusan, dan calon pembiaya, serta menunjukkan cara data diterjemahkan menjadi keputusan mingguan."),
-    ("fig", "peran", "f22_peran.png", "Kiri: matriks keputusan pengelola dari dua metrik SUAR. Kanan: peran para pihak", 14.0),
+    ("fig", "biaya", "f21_biaya.png", "Kiri: biaya kepemilikan tiga tahun. Kanan: proyeksi skenario tiga tahun. Seluruh angka proyeksi adalah asumsi tim (Lampiran G)", 13.0),
+    ("p", f"Proyeksi memakai harga paket Rp{d(R['price'] / 1e6, 1)} juta dan layanan tahunan Rp{rp(R['service'])} untuk kalibrasi serta pembaruan *firmware*. Dengan 275 paket terpasang pada tahun ketiga, setara {d(R['share_y3'] * 100, 1)}% dari 10.268 puskesmas (GoodStats, 2025) dan belum menghitung klinik swasta, usaha ini mencapai laba operasi positif. Semua asumsinya belum divalidasi dengan calon pembeli, jadi angka ini menunjukkan apa yang harus benar agar model bisnisnya berjalan. Laba belum berarti kas: dengan piutang 60 hari, kas kumulatif mencapai titik terendah sekitar −Rp{d(-FIN['base']['peak'] / 1e6)} juta dan masih −Rp{d(-FIN['base']['end'] / 1e6)} juta pada akhir tahun ketiga. Titik impas tahun ketiga sekitar {d(A2['unit']['be_units'][2])} paket. Bagi puskesmas, satu paket beserta layanan tahun pertama hanya sekitar {pct(A2['afford']['kit_share'], 1)} dari pos operasional kapitasi pada contoh terendah (Lampiran I). Tiga skema penawaran, jalur pembiayaan, dan penurunan harga pokok dari DevKit ke modul produksi ada di Lampiran M. {{fig:peran}} pada Lampiran M memisahkan penerima manfaat, operator, pengambil keputusan, dan calon pembiaya, serta menunjukkan cara data diterjemahkan menjadi keputusan mingguan."),
     ("p", "{fig:bmc} merangkum model bisnisnya. Pembeli pertama yang kami sasar adalah puskesmas dan klinik yang ikut pilot, karena mereka sekaligus menjadi sumber data bising lokal. Jalur anggaran masih harus dikonfirmasi langsung dengan Dinas Kesehatan sebelum perluasan."),
-    ("fig", "bmc", "f28_bmc.png", "Business Model Canvas SUAR, rumusan awal tim", 14.0),
+    ("fig", "bmc", "f28_bmc.png", "Business Model Canvas SUAR, rumusan awal tim", 13.0),
     ("h2", "5.5 Gerbang uji dan peta jalan"),
     ("p", "{tab:gerbang} memuat kriteria yang kami tetapkan sebelum ada hasil. Bila satu gerbang gagal, tahap berikutnya berhenti sampai sebabnya ditangani. Komponen dipesan dan G1 dimulai segera setelah pengumuman finalis, sehingga prototipe yang tampil pada 4 sampai 5 Desember 2026 sudah menjalani uji komponen dan integrasi awal ({fig:peta})."),
     ("tab", "gerbang", "Empat gerbang uji dengan kriteria yang ditetapkan lebih dulu",
      ["Gerbang", "Pengujian", "Kriteria lulus", "Tindakan bila gagal"],
-     [["G1 Komponen", "≥500 batuk dan ≥5 jam audio negatif diputar di perangkat", "Sensitivitas ≥90%; alarm palsu kejadian ≤1,03/jam; inferensi ≤100 ms; 0 byte audio keluar", "Perbesar model atau data; turunkan klaim"],
+     [["G1 Komponen", f"≥500 batuk diputar di perangkat dan ≥{A2['g1_hours_for_claim']} jam audio negatif disuntikkan", "Sensitivitas ≥90% dan batas bawah ≥85%; alarm palsu kejadian ≤1,03/jam; inferensi ≤100 ms; 0 byte audio keluar", "Perbesar model atau data; turunkan klaim"],
       ["G2 Integrasi", "4 simpul dan pager, 24 jam, listrik dan radio diganggu", "Pemicu sampai pager ≤10 detik; pengiriman ≥99%; pulih otomatis", "Perbaiki protokol dan kirim ulang"],
-      ["G3 Ruang", "Ruang simulasi, wawancara 8 sampai 12 informan", "Atribusi zona ≥80%; alarm palsu Tingkat 2 ≤1/jam; pasang ≤15 menit; SUS ≥68", "Kalibrasi ulang ambang, tata letak, kata-kata papan"],
-      ["G4 Pilot", "1 ruang tunggu, 2 minggu, setelah izin dan persetujuan etik", "Respons median ≤3 menit; proporsi pasien batuk bermasker naik dari baseline; tanpa keluhan privasi serius", "Hentikan perluasan; tinjau alur"]],
+      ["G3 Ruang", "Ruang simulasi, wawancara 8 sampai 12 informan", "Zona benar tertandai ≥80%; alarm palsu Tingkat 2 ≤1/jam; pasang ≤15 menit; SUS ≥68", "Kalibrasi ulang ambang, tata letak, kata-kata papan"],
+      ["G4 Pilot", "1 ruang tunggu, 1 minggu senyap dan 2 minggu aktif, setelah izin dan persetujuan etik", "Respons median ≤3 menit; proporsi pasien batuk bermasker naik dari baseline; tanpa keluhan privasi serius", "Hentikan perluasan; tinjau alur"]],
      [2.2, 4.2, 4.6, 3.0]),
-    ("tab", "metrik", "Cara setiap kegagalan ditangkap, beserta titik buta metriknya",
-     ["Kegagalan", "Ditangkap oleh", "Titik buta metrik"],
-     [["Batuk terlewat", "Sensitivitas per kejadian, rekaman batuk lemah dan jauh", "Rekaman diputar belum sama dengan batuk nyata"],
-      ["Alarm palsu", "Alarm per jam pada audio kontinu, uji negatif sulit", "Bising tiap puskesmas berbeda; perlu data lokal"],
-      ["Audio bocor", "Inspeksi paket, audit kode", "Tidak melindungi dari firmware yang diganti; perlu Secure Boot"],
-      ["Salah zona", "Akurasi atribusi di ruang simulasi", "Ruang simulasi berbeda gema dengan puskesmas"],
-      ["Tindakan tidak terjadi", "Waktu tombol, audit acak saat pilot", "Tombol dapat ditekan tanpa tindakan"]],
-     [3.2, 5.8, 5.0]),
     ("fig", "peta", "f23_peta.png", "Peta jalan November 2026 sampai Juni 2027. Warna teal: gerbang teknis. Navy: kegiatan lapangan dan perizinan", 14.0),
-    ("p", "Pada tahap final, prototipe akan didemonstrasikan seperti {fig:booth}. Juri dapat mencoba sendiri dalam satu menit dan memeriksa langsung bahwa log hanya berisi metadata."),
-    ("fig", "booth", "f29_booth.png", "Rencana peragaan satu menit di booth final 2 x 2 m", 14.0),
+    ("p", f"Ukuran uji juga kami periksa. Lima jam audio negatif ternyata terlalu sedikit untuk membuktikan batas alarm, sehingga G1 kami naikkan menjadi ≥{A2['g1_hours_for_claim']} jam, dan pilot membutuhkan ≥{A2['mask_n']} orang batuk per fase untuk mendeteksi kenaikan pemakaian masker dari 27% menjadi 50% (Lampiran K). {{fig:rollout}} merangkum rencana implementasi dari purwarupa sampai perluasan, dengan syarat lanjut pada tiap tahap. Jadwal pembangunan, pembagian peran, dan protokol pilot ada di Lampiran N."),
+    ("fig", "rollout", "f40_rollout.png", "Rencana implementasi lima tahap, tingkat kesiapan teknologi, dan syarat lanjut. Target tim", 14.0),
+    ("p", "Pada tahap final, prototipe akan didemonstrasikan seperti {fig:booth} pada Lampiran J. Juri dapat mencoba sendiri dalam satu menit dan memeriksa langsung bahwa log hanya berisi metadata."),
 
     # ==================== BAB VI ====================
     ("h1", "BAB VI PENUTUP"),
@@ -224,9 +238,10 @@ BODY = [
      ["Janji kepada pengguna", "Ukuran pembukti", "Status hari ini"],
      [["Batuk di ruang tunggu menjadi data", "Sensitivitas ≥90% per kejadian", "Target dari literatur; belum diukur"],
       ["Petugas tahu tanpa terus mengamati", "Pemicu sampai pager ≤10 detik", "Terhitung 1,73 detik; belum diukur"],
-      ["Tidak mengganggu dengan alarm palsu", "≤1 per jam per ruang", "Tersimulasi 0,94 per jam; belum diukur"],
+      ["Tidak mengganggu dengan alarm palsu", "≤1 per jam per ruang", f"Tersimulasi {d(A2['alarm']['sim'][2], 2)} per jam; belum diukur"],
+      ["Zona yang tepat ditandai", "≥80% zona benar tertandai", f"Termodelkan {pct(GAP['1.5']['tagged'])}; belum diukur"],
       ["Percakapan tetap aman", "0 byte audio keluar", "Dirancang; menunggu audit"],
-      ["Pengunjung lebih terlindung", "Respons, masker, dosis relatif", "Termodelkan 7 sampai 49%; pilot menentukan"],
+      ["Pengunjung lebih terlindung", "Respons, masker, dosis relatif", f"Termodelkan rata-rata {pct(POP['0.0']['dose_red'])} sampai {pct(POP['0.5']['dose_red'])}; pilot menentukan"],
       ["Terjangkau untuk klinik kecil", "≤Rp600 ribu per zona", "Terhitung ±Rp565 ribu; belum termasuk ongkos rakit"]],
      [5.4, 4.2, 4.4]),
     ("p", "Selama ini batuk di ruang tunggu berlalu tanpa jejak. SUAR mengubahnya menjadi tanda yang dapat ditindaklanjuti tanpa menyimpan suara siapa pun, sehingga puskesmas dapat menilai layanannya dari jumlah kasus yang ditemukan sekaligus dari menit paparan yang dicegah. Rancangan ini siap dibangun dan siap dibuktikan salah pada setiap gerbang. Suara tak disimpan, suar dinyalakan."),
@@ -279,8 +294,8 @@ REFS = [
 
 _fm = [("Batuk terlewat", "Terduga tidak ditawari masker", "Bising, jarak jauh, batuk jarang", (7, 5, 6), (7, 3, 6), "Dua tingkat sinyal, augmentasi bising, triase verbal tetap jalan"),
        ("Stigma terhadap zona", "Pasien malu atau menghindar", "Lampu dianggap menandai orang TBC", (6, 5, 5), (6, 3, 4), "Satuan zona, warna netral, masker untuk semua, papan informasi"),
-       ("Alarm palsu", "Kelelahan alarm", "Bersin, tawa, benda jatuh", (6, 6, 4), (6, 3, 3), "Ambang dua tingkat, data negatif lokal, umpan balik tombol"),
-       ("Salah atribusi zona", "Masker ditawarkan ke zona keliru", "Gema, level hampir sama", (4, 5, 6), (4, 3, 4), "Kalibrasi gain, aturan ΔL <3 dB ke dua zona"),
+       ("Alarm palsu", "Kelelahan alarm", "Bersin, tawa, benda jatuh", (6, 6, 4), (6, 3, 3), "Ambang dua tingkat, jeda pemicu ulang, mode bising, data negatif lokal, umpan balik tombol"),
+       ("Salah atribusi zona", "Masker ditawarkan ke zona keliru", "Gema, level hampir sama", (4, 5, 6), (4, 3, 4), "Kalibrasi gain, level awal batuk, rata-rata dua batuk, aturan ΔL <1,5 dB"),
        ("Petugas tidak merespons", "Tindakan tidak terjadi", "Beban kerja puncak", (7, 4, 3), (7, 2, 3), "Eskalasi 3 menit, KPI waktu respons"),
        ("Kebocoran privasi", "Melanggar UU PDP, hilang kepercayaan", "Firmware diubah", (9, 2, 3), (9, 1, 3), "Secure Boot V2, flash encryption, audit, segel fisik"),
        ("Pager kehabisan baterai", "Notifikasi tidak terasa", "Lupa mengisi daya", (6, 3, 2), (6, 2, 1), "Peringatan baterai rendah, LED simpul tetap menyala"),
@@ -323,8 +338,9 @@ APPENDIX = [
     ("tab", "l_paket", "Format paket ESP-NOW simpul ke koordinator",
      ["Medan", "Ukuran", "Isi"],
      [["versi, jenis", "1 byte", "Versi skema dan jenis paket"], ["node_id", "1 byte", "Simpul A sampai D"], ["seq", "2 byte", "Nomor urut, untuk ACK dan kirim ulang"], ["t_ms", "4 byte", "Waktu terselaraskan koordinator"],
-      ["level_db", "2 byte", "Level relatif terkalibrasi"], ["conf", "1 byte", "Skor model yang dikuantisasi"], ["status", "1 byte", "Normal, pendengaran terbatas, baterai, galat"], ["cadangan", "4 byte", "Perluasan"], ["**Total**", "**16 byte**", "Di bawah batas 250 byte ESP-NOW v1.0 (Espressif, 2026c)"]],
+      ["level_db", "2 byte", "Level 50 ms awal batuk, terkalibrasi"], ["conf", "1 byte", "Skor model yang dikuantisasi"], ["status", "1 byte", "Normal, pendengaran terbatas, baterai, galat"], ["cadangan", "4 byte", "Perluasan"], ["**Total**", "**16 byte**", "Di bawah batas 250 byte ESP-NOW v1.0 (Espressif, 2026c)"]],
      [3.2, 2.2, 8.6]),
+    ("fig", "sekuens", "f26_sekuens.png", "Diagram urutan pesan antara simpul, koordinator, pager, dan dasbor", 13.5),
     ("h2x", "Lampiran E. Parameter Model Paparan"),
     ("tab", "l_wr", "Parameter simulasi. P = 1 − exp(−I·q·p·t / Q), dengan Q = V × ACH (Riley dkk., 1978)",
      ["Parameter", "Nilai", "Sumber atau keterangan"],
@@ -345,8 +361,12 @@ APPENDIX = [
      [5.6, 2.8, 2.8, 2.8]),
     ("p", f"Biaya CCTV pada perbandingan tiga tahun memakai asumsi Rp9 juta pemasangan dan Rp1,8 juta per tahun untuk listrik serta perawatan. Biaya SUAR memakai perangkat Rp{rp(R['kit_hw'])}, listrik, dan Rp250 ribu per tahun untuk suku cadang. Gaji petugas memakai UMK tanpa tunjangan."),
     ("h2x", "Lampiran H. Topologi Model"),
+    ("fig", "model", "f14_model.png", "Rantai pelatihan dan topologi CNN int8. Tampilan spektrogram bersifat ilustratif", 14.0),
     ("tab", "l_model", "Lapisan CNN, dihitung otomatis dari skrip rancangan. Masukan log-mel 64 x 49 x 1",
      ["Lapisan", "Konfigurasi", "Keluaran", "Parameter", "MAC"],
      [[a, b, c, rp(e), rp(f)] for a, b, c, e, f in R["model"]["layers"]] + [["**Total**", "", "", f"**{PARAMS}**", f"**{rp(R['model']['macs'])}**"]],
      [2.2, 5.0, 2.4, 2.1, 2.3]),
 ]
+
+APPENDIX += lampiran2.BLOCKS
+REFS = sorted(REFS + lampiran2.REFS, key=lambda r: r.lower())

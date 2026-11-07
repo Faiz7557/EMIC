@@ -81,7 +81,7 @@ export interface SimConfig {
   rebuzzMin: number;   // 3
   pauseMin: number;    // 15
   mergeMs: number;     // 300
-  ambiguousDb: number; // 3
+  ambiguousDb: number; // 1.5
   maxRangeM: number;   // 4
   startClockMin: number; // 540, artinya 09.00
 }
@@ -304,7 +304,7 @@ Pakai ulang `reference/caliber/three/stage.ts` dan bagian `kit.ts` yang diperluk
 - **Koordinat.** `threeX = x - 5`, `threeZ = y - 2.5`, sumbu Y ke atas, 1 unit sama dengan 1 meter.
 - **Klik lantai.** Raycast ke bidang lantai, ubah ke koordinat meter, kirim `cough`. Gerakan lebih dari 5 px dianggap geser kamera.
 - **Hover.** Hitung `attribute` dan tampilkan zona serta ΔL pada tooltip DOM.
-- **Tekstur lantai.** Canvas 2048 px digambar dari `attrib.cells`: warna zona dan arsir ΔL < 3 dB, memakai pendekatan `groundTexture` pada `plant-scene.ts`.
+- **Tekstur lantai.** Canvas 2048 px digambar dari `attrib.cells`: warna zona dan arsir ΔL < 1,5 dB, memakai pendekatan `groundTexture` pada `plant-scene.ts`.
 - **Efek.** Baca `state.effects` dan `state.packets` untuk riak batuk dan titik paket. Efek tidak mengubah status.
 - **Label.** Elemen DOM mengikuti proyeksi titik jangkar, memakai pendekatan `machine-stage.tsx`.
 - **Pemuatan.** `Scene3D` dimuat dengan `React.lazy`. Kerangka halaman tampil lebih dahulu.
@@ -341,7 +341,7 @@ Disalin oleh T00 dan tidak boleh diubah. Tujuannya agar builder Codex tidak berg
 | Salinan | Asal |
 |---|---|
 | `reference/analysis.py`, `analysis.json` | `Semifinal/paper/script/` |
-| `reference/proposal-content.py` | `Semifinal/paper/script/content.py` |
+| `reference/proposal-content.py`, `proposal-lampiran2.py`, `analysis2.json` | `Semifinal/paper/script/` |
 | `reference/figures/f07, f08, f09, f10, f12, f13, f15, f17, f26, f27, f29` | `Semifinal/paper/script/figures/` |
 | `reference/caliber/globals.css`, `ui.tsx`, `tour.tsx`, `tour-steps.ts`, `machine-stage.tsx`, `replay-view.tsx`, `shell.tsx` | `Semifinal/caliber-final/app/` |
 | `reference/caliber/three/stage.ts`, `kit.ts`, `plant-scene.ts` | `Semifinal/caliber-final/app/components/three/` |
@@ -358,7 +358,7 @@ Skripnya: `tsc --noEmit && vitest run && vite build`.
 
 | Uji | Isi minimum |
 |---|---|
-| `attribution.test.ts` | Seluruh 800 sel sama dengan `attrib.cells`. Persentase ambigu sama dengan 36,0. Jarak maksimal 2,907 m |
+| `attribution.test.ts` | Seluruh 800 sel sama dengan `attrib.cells`. Dengan ambang 3 dB persentase ambigu sama dengan 36,0, angka peta medan bebas pada proposal. Ambang bawaan 1,5 dB. Jarak maksimal 2,907 m |
 | `engine.test.ts` | Skenario 09.15, 09.22, 09.24.40. Batas tepat 15 menit memicu, 15 menit 1 detik tidak. Eskalasi tepat 3 menit. Jeda 15 menit. Satu batuk ambigu menaikkan dua zona dan satu kelompok peringatan. Dua batuk dalam 300 ms dihitung satu. Maju 900.000 ms sama dengan 900 kali 1.000 ms. Simpul luring tidak melapor. Simpul A tidak dapat luring |
 | `packet.test.ts` | Panjang tepat 16. Bolak-balik `encode` dan `decode`. Hex bentuk tetap. Cadangan bernilai 0 |
 | `model.test.ts` | Seluruh golden pada subbab 8. Benih sama menghasilkan keluaran sama |
