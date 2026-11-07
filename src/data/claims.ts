@@ -102,11 +102,11 @@ export const CLAIMS = {
   },
   sensitivity: {
     id: "sensitivity", nilai: 0.9, tampil: "≥90%", status: "target",
-    sumber: "PRD §8; proposal Bab V, G1 · sensitivitas kejadian batuk, belum diukur",
+    sumber: "PRD §8; proposal Bab V, uji komponen · sensitivitas kejadian batuk, belum diukur",
   },
   response: {
     id: "response", nilai: 3, tampil: "≤3 menit", status: "target",
-    sumber: "PRD §8; proposal Bab V, G3 dan G4 · waktu respons petugas, belum diukur",
+    sumber: "PRD §8; proposal Bab V, uji sistem dan uji pilot · waktu respons petugas, belum diukur",
   },
   audioOut: {
     id: "audio-out", nilai: 0, tampil: "0 byte", status: "dirancang",

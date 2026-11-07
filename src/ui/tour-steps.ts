@@ -14,5 +14,5 @@ export const TOUR_STEPS: readonly TourStep[] = [
   { target: "cough-c", title: "Batuk pertama", body: "Satu batuk. Lampu zona menyala lembut dan papan mengajak mengambil masker.", action: { type: "coughZone", zone: "C" } },
   { target: "cough-c", title: "Tujuh menit kemudian", body: "Tujuh menit kemudian, batuk kedua. Dua batuk dalam 15 menit memanggil petugas.", advanceMs: 7 * 60_000, action: { type: "coughZone", zone: "C" } },
   { target: "pager-done", title: "Petugas menangani", body: "Pager bergetar. Petugas menawarkan masker, lalu menekan tombol setelah 2 menit 40 detik.", advanceMs: 160_000, action: { type: "pagerPress" } },
-  { target: "log", title: "Hanya metadata yang tercatat", body: "Hanya zona, waktu, level, dan status yang tercatat. Ini simulasi; uji nyatanya dijadwalkan pada G1 sampai G4." },
+  { target: "log", title: "Hanya metadata yang tercatat", body: "Hanya zona, waktu, level, dan status yang tercatat. Ini simulasi; uji nyatanya dijadwalkan pada empat tahap pengujian." },
 ];

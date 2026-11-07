@@ -17,13 +17,13 @@ export default function Bukti() {
   return <>
     <PageHead title="Seberapa kuat buktinya?" answer={copy.mandatory} />
     <Panel>
-      <PanelHead title="Janji dan status bukti hari ini" />
+      <PanelHead title="Manfaat yang dituju dan status buktinya" />
       <div className="panel-body">
-        <p>Belum ada baris yang berstatus terukur. Status berikut mengikuti Tabel janji pada Bab VI proposal.</p>
-        <div className="overflow-x-auto" role="region" aria-label="Tabel janji proposal" tabIndex={0}>
+        <p>Belum ada baris yang berstatus terukur. Status berikut mengikuti tabel manfaat yang dituju pada Bab VI proposal.</p>
+        <div className="overflow-x-auto" role="region" aria-label="Tabel manfaat proposal" tabIndex={0}>
           <table className="w-full min-w-[620px] text-left">
-            <caption className="sr-only">Tujuh janji, ukuran pembukti, dan status hari ini dari Bab VI proposal</caption>
-            <thead><tr>{["Janji kepada pengguna", "Ukuran pembukti", "Status hari ini"].map((title) => <th key={title} scope="col" className="p-3 align-top">{title}</th>)}</tr></thead>
+            <caption className="sr-only">Tujuh manfaat yang dituju, ukuran, dan status hari ini dari Bab VI proposal</caption>
+            <thead><tr>{["Manfaat yang dituju", "Ukuran", "Status hari ini"].map((title) => <th key={title} scope="col" className="p-3 align-top">{title}</th>)}</tr></thead>
             <tbody>{promises.map((promise) => <tr key={promise.janji} className="border-t border-line">
               <th scope="row" className="p-3 align-top font-medium">{promise.janji}</th>
               <td className="p-3 align-top">{promise.ukuran}</td>
@@ -31,17 +31,17 @@ export default function Bukti() {
             </tr>)}</tbody>
           </table>
         </div>
-        <p className="page-note">Sumber: proposal Bab VI, “Janji, ukuran pembukti, dan status buktinya hari ini”.</p>
+        <p className="page-note">Sumber: proposal Bab VI, “Manfaat yang dituju, ukuran, dan status buktinya hari ini”.</p>
         <p className="page-note">Alarm {CLAIMS.falseAlarmWithPause.tampil} per jam memakai jeda pemicu ulang 15 menit. Zona benar tertandai {CLAIMS.taggedZone.tampil} berasal dari model gema proposal, level 50 ms awal dan rata-rata dua batuk; angka ini bukan keluaran engine medan bebas. <ClaimTag claim={CLAIMS.taggedZone} /></p>
       </div>
     </Panel>
     <Panel>
-      <PanelHead title="Empat gerbang uji" />
+      <PanelHead title="Empat tahap pengujian" />
       <div className="panel-body space-y-6">
-        <p>Semua kriteria adalah target. Bila satu gerbang gagal, tahap berikutnya berhenti sampai sebabnya ditangani.</p>
+        <p>Semua kriteria adalah target. Bila satu tahap gagal, tahap berikutnya berhenti sampai sebabnya ditangani.</p>
         {gates.map((gate) => <article key={gate.id} className="border-t border-line pt-4">
           <div className="flex flex-wrap items-center gap-3">
-            <h3 className="m-0 text-base font-semibold">{gate.id} · {gate.title}</h3>
+            <h3 className="m-0 text-base font-semibold">{gate.title}</h3>
             <span className="chip bg-idle-soft text-idle-ink">Belum dijalankan</span>
             <ClaimTag claim={{ id: gate.id, tampil: gate.kriteria, status: gate.status, sumber: gate.sumber, nilai: 0 }} />
           </div>
@@ -51,7 +51,7 @@ export default function Bukti() {
             <dt className="font-medium">Bila gagal</dt><dd className="m-0">{gate.bilaGagal}</dd>
           </dl>
         </article>)}
-        <p className="page-note">Sumber: proposal Bab V, tabel gerbang. Simulator tidak menjalankan pengujian perangkat ini.</p>
+        <p className="page-note">Sumber: proposal Bab V, tabel tahap pengujian. Simulator tidak menjalankan pengujian perangkat ini.</p>
       </div>
     </Panel>
     <Panel>
@@ -88,7 +88,7 @@ export default function Bukti() {
           <li>Respons petugas, kepatuhan masker, dan manfaat klinis nyata. Dosis relatif termodelkan bukan penurunan kasus TBC.</li>
         </ul>
         <p className="mt-4">{copy.modelLimit}</p>
-        <p className="page-note">Rujukan: proposal Bab IV (rancangan rinci), Bab V (anggaran, dampak, gerbang uji), Lampiran K dan L (model), serta Lampiran C dan D (komponen dan paket). Prototipe fisik tetap diperlukan pada tahap final.</p>
+        <p className="page-note">Rujukan: proposal Bab IV (rancangan rinci), Bab V (anggaran, dampak, tahap pengujian), Lampiran K dan L (model), serta Lampiran C dan D (komponen dan paket). Prototipe fisik tetap diperlukan pada tahap final.</p>
       </div>
     </Panel>
   </>;

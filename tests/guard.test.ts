@@ -152,7 +152,7 @@ describe("revised proposal evidence on screen", () => {
     expect(promises[3]).toMatchObject({ ukuran: "≥80% zona benar tertandai", bukti: "Termodelkan 91%; belum diukur", status: "tersimulasi" });
     expect(promises[5]).toMatchObject({ ukuran: "Respons, masker, dosis relatif", bukti: "Termodelkan rata-rata 28% sampai 35%; pilot menentukan", status: "tersimulasi" });
     const html = renderToStaticMarkup(createElement(Bukti));
-    expect(html).toContain("Tujuh janji");
+    expect(html).toContain("Tujuh manfaat");
     for (const promise of promises) expect(html).toContain(promise.bukti);
     expect(html.match(/Belum dijalankan/g)).toHaveLength(4);
   });
