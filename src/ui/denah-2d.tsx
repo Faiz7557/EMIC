@@ -1,6 +1,7 @@
 import { memo, useEffect, useId, useRef, useState, type PointerEvent } from "react";
 import { Bell, BellRing, CircleCheck, EarOff, HandHelping, Megaphone, WifiOff } from "lucide-react";
 import { attrib } from "../../reference/analysis.json";
+import { attribute } from "../sim/attribution";
 import { ZONES, type Endpoint, type PacketTrace, type SimEffect, type ZoneId, type ZoneState } from "../sim/types";
 
 export interface RoomViewProps {
@@ -37,11 +38,10 @@ export function zoneAppearance(zone: ZoneState) {
 /** Golden-cell preview only: exact attribution is owned by the missing T03 module.
  * Never uses this preview to choose a status or to alter callback coordinates. */
 export function floorPreview(x: number, y: number) {
-  const col = Math.min(39, Math.max(0, Math.floor(x / 0.25)));
-  const row = Math.min(19, Math.max(0, Math.floor(y / 0.25)));
-  const cell = FLOOR_CELLS[row * 40 + col];
-  const names = cell[4] < 3 ? `Zona ${ZONES[cell[2]]} dan ${ZONES[cell[3]]}` : `Zona ${ZONES[cell[2]]}`;
-  return `${names} · ΔL sel denah ${cell[4].toFixed(1).replace(".", ",")} dB`;
+  const result = attribute(x, y);
+  if (!result) return "Di luar jangkauan simpul";
+  const names = result.secondary ? `Zona ${result.primary} dan ${result.secondary}` : `Zona ${result.primary}`;
+  return `${names} · ΔL ${result.deltaDb.toFixed(1).replace(".", ",")} dB`;
 }
 
 export function useMediaQuery(query: string) {
