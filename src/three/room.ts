@@ -138,19 +138,31 @@ export function createRoomStage(canvas: HTMLCanvasElement, labels: HTMLElement, 
     if (reduced) { for (let i = animations.length - 1; i >= 0; i--) clearAnimation(i); pipe.setMoving(false); pipe.invalidate(); }
   };
   media.addEventListener("change", onReduced);
-  const orbit = { yaw: 0.22, pitch: 0.64, distance: 23 };
-  const target = new THREE.Vector3(0.6, 0.65, 0);
+  const orbit = { yaw: 0.12, pitch: 0.64, distance: 15.2 };
+  const target = new THREE.Vector3(0.6, 0.95, 0);
   const projected = new THREE.Vector3();
   const place = () => {
     // Fit the same room on a narrower canvas without cropping either floor corner.
-    const distance = orbit.distance * Math.max(1, 1.65 / pipe.camera.aspect);
+    const distance = orbit.distance * Math.max(1, 2.2 / pipe.camera.aspect);
     pipe.camera.position.set(target.x + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * distance, target.y + Math.sin(orbit.pitch) * distance, target.z + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * distance);
     pipe.camera.lookAt(target); pipe.camera.updateMatrixWorld();
+    const placed: { left: number; top: number; width: number; height: number }[] = [];
     room.anchors.forEach((anchor, i) => {
       const label = labels.children.item(i) as HTMLElement | null;
       if (!label) return;
       projected.copy(anchor).project(pipe.camera);
-      label.style.transform = `translate3d(${(projected.x * 0.5 + 0.5) * pipe.size.w}px,${(-projected.y * 0.5 + 0.5) * pipe.size.h}px,0) translate(-50%,-100%)`;
+      const width = label.offsetWidth, height = label.offsetHeight;
+      const left = Math.max(4, Math.min(pipe.size.w - width - 4, (projected.x * 0.5 + 0.5) * pipe.size.w - width / 2));
+      let top = Math.max(4, (-projected.y * 0.5 + 0.5) * pipe.size.h - height);
+      // Stack colliding labels without changing their node anchors or hiding status.
+      for (const previous of placed) {
+        if (left < previous.left + previous.width + 6 && left + width + 6 > previous.left
+          && top < previous.top + previous.height + 6 && top + height + 6 > previous.top) {
+          top = previous.top + previous.height + 6;
+        }
+      }
+      placed.push({ left, top, width, height });
+      label.style.transform = `translate3d(${left}px,${top}px,0)`;
       label.hidden = projected.z < -1 || projected.z > 1 || Math.abs(projected.x) > 1 || Math.abs(projected.y) > 1;
     });
   };
@@ -256,7 +268,7 @@ export function createRoomStage(canvas: HTMLCanvasElement, labels: HTMLElement, 
   place(); update(initial);
   return {
     pipe, update,
-    resetCamera: () => { orbit.yaw = 0.22; orbit.pitch = 0.64; place(); pipe.invalidate(); },
+    resetCamera: () => { orbit.yaw = 0.12; orbit.pitch = 0.64; place(); pipe.invalidate(); },
     dispose: () => {
       if (disposed) return;
       disposed = true;

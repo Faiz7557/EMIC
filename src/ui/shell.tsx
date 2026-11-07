@@ -44,7 +44,7 @@ function SessionCard({ mini = false }: { mini?: boolean }) {
   const { state } = useSim();
   const elapsed = Math.floor(state.nowMs / 1000) + state.cfg.startClockMin * 60;
   const time = [Math.floor(elapsed / 3600) % 24, Math.floor(elapsed / 60) % 60, elapsed % 60].map((part) => String(part).padStart(2, "0")).join(":");
-  const count = state.log.filter((entry) => entry.kind === "BATUK").length;
+  const count = new Set(state.log.filter((entry) => entry.kind === "BATUK").map((entry) => entry.tMs)).size;
   if (mini) return <div className="session-mini" title={`Jam simulasi ${time}. ${count} kejadian. Audio keluar ${state.counters.audioBytesOut} byte.`}>
     <Clock3 size={18} aria-hidden="true" /><span className="sr-only">Sesi ini: {time}, {count} kejadian, audio keluar {state.counters.audioBytesOut} byte.</span>
   </div>;
@@ -103,8 +103,6 @@ export function Shell({ children, path, demoRequested = false }: { children: Rea
         <button ref={menuButton} type="button" className="icon-button mobile-menu" aria-label="Buka menu navigasi" aria-haspopup="dialog" aria-expanded={drawerOpen} aria-controls="mobile-navigation"
           onClick={() => { drawer.current?.showModal(); setDrawerOpen(true); }}><Menu size={20} aria-hidden="true" /></button>
         <span className="topbar-label">SUAR Simulator</span><SimulationBadge />
-      </header>
-      <div className="content-wrap">
         <div className="global-actions">
           <details className="glossary" onKeyDown={(event) => {
             if (event.key === "Escape") {
@@ -115,12 +113,20 @@ export function Shell({ children, path, demoRequested = false }: { children: Rea
             <div className="glossary-content"><dl>
               <dt>Zona</dt><dd>Area ruang tunggu yang diamati satu simpul.</dd>
               <dt>Simpul</dt><dd>Alat fisik yang menghitung batuk per zona.</dd>
+              <dt>Tingkat 1</dt><dd>Satu batuk terdengar; papan mengajak pengunjung mengambil masker.</dd>
+              <dt>Tingkat 2</dt><dd>Batuk berulang dalam jendela waktu; pager memanggil petugas.</dd>
+              <dt>ΔL</dt><dd>Selisih kerasnya suara yang diterima dua simpul. Selisih kecil dapat menandai dua zona.</dd>
+              <dt>ESP-NOW</dt><dd>Cara alat saling mengirim pesan singkat tanpa internet.</dd>
+              <dt>TinyML</dt><dd>Model kecil di dalam alat yang dirancang untuk mengenali batuk.</dd>
               <dt>Pager</dt><dd>Alat pemberi sinyal kepada petugas.</dd>
               <dt>Metadata</dt><dd>Catatan zona, waktu, level, dan status.</dd>
             </dl></div>
           </details>
           <button className="button button-quiet" type="button" onClick={reset}><RotateCcw size={15} aria-hidden="true" />Reset</button>
+          <button className="demo-button" type="button" onClick={startDemo}><Play size={16} aria-hidden="true" />Demo 1 menit</button>
         </div>
+      </header>
+      <div className="content-wrap">
         {path === "/" && demoRequested && !demoDismissed && <div className="demo-offer">
           <p>Lihat SUAR bekerja dalam 1 menit</p>
           <p>Enam langkah untuk mencoba alur SUAR. Demo dimulai dari keadaan reset.</p>
@@ -130,10 +136,7 @@ export function Shell({ children, path, demoRequested = false }: { children: Rea
         {children}
         <footer className="app-footer">{copy.footer}</footer>
       </div>
-      <div className="demo-placeholder">
-        <button className="demo-button" type="button" onClick={startDemo}><Play size={16} aria-hidden="true" />Demo 1 menit</button>
-        {demoOpen && path === "/" && <Tour onClose={() => setDemoOpen(false)} />}
-      </div>
+      {demoOpen && path === "/" && <Tour onClose={() => setDemoOpen(false)} />}
     </div>
     <dialog id="mobile-navigation" className="mobile-drawer" ref={drawer} aria-label="Menu navigasi SUAR" onClose={() => { setDrawerOpen(false); menuButton.current?.focus(); }}
       onClick={(event) => { if (event.target === event.currentTarget) closeDrawer(); }}>

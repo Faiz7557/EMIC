@@ -1,4 +1,5 @@
-import { motion, useReducedMotion } from "motion/react";
+import { useEffect } from "react";
+import { motion, useAnimationControls, useReducedMotion } from "motion/react";
 import { BellRing, Circle } from "lucide-react";
 import { copy } from "../data/copy";
 import { ZONES, type SimState } from "../sim/types";
@@ -7,12 +8,17 @@ import { formatDuration } from "./log-table";
 
 export function Pager({ state, onDone, disabled = false }: { state: SimState; onDone: () => void; disabled?: boolean }) {
   const reduced = useReducedMotion();
+  const controls = useAnimationControls();
   const buzz = [...state.effects].reverse().find((effect) => effect.kind === "buzz");
   const waiting = state.pendingGroups.length > 0;
+  useEffect(() => {
+    void controls.start({ x: !reduced && waiting ? [0, -3, 3, -3, 3, -3, 3, 0] : 0,
+      transition: { duration: 0.36 } });
+  }, [controls, reduced, waiting, buzz?.id, buzz?.tMs]);
   const lastResponse = [...state.log].reverse().find((entry) => entry.kind === "DITANGANI");
   return <>
-    <motion.section key={buzz ? `${buzz.id}:${buzz.tMs}` : "idle"} aria-label="Pager petugas"
-      initial={false} animate={{ x: !reduced && waiting ? [0, -3, 3, -3, 3, -3, 3, 0] : 0 }} transition={{ duration: 0.36 }}
+    <motion.section aria-label="Pager petugas"
+      initial={false} animate={controls}
       style={{ padding: 20, borderRadius: 20, background: "var(--ink)", color: "white", boxShadow: waiting ? "0 0 0 3px var(--alert)" : undefined }}>
       <h3 style={{ margin: "0 0 16px", fontSize: 15 }}>SUAR · Pager petugas</h3>
       <p>{waiting ? <><BellRing size={16} aria-hidden="true" /> Pager bergetar · menunggu tindakan</> : "Tidak ada panggilan menunggu."}</p>

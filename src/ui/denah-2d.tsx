@@ -1,13 +1,14 @@
 import { memo, useEffect, useId, useRef, useState, type PointerEvent } from "react";
 import { Bell, BellRing, CircleCheck, EarOff, HandHelping, Megaphone, WifiOff } from "lucide-react";
 import { attrib } from "../../reference/analysis.json";
-import { attribute, DEFAULT_AMBIGUOUS_DB } from "../sim/attribution";
+import { attribute, DEFAULT_AMBIGUOUS_DB, type AttributionOptions } from "../sim/attribution";
 import { ZONES, type Endpoint, type PacketTrace, type SimEffect, type ZoneId, type ZoneState } from "../sim/types";
 
 export interface RoomViewProps {
   zones: Record<ZoneId, ZoneState>;
   effects: readonly SimEffect[];
   packets: readonly PacketTrace[];
+  attribution?: AttributionOptions;
   onFloorClick: (x: number, y: number) => void;
   onFloorHover: (x: number, y: number) => void;
 }
@@ -37,8 +38,8 @@ export function zoneAppearance(zone: ZoneState) {
 
 /** Exact preview from the same attribution model as the engine.
  * Never uses this preview to choose a status or to alter callback coordinates. */
-export function floorPreview(x: number, y: number) {
-  const result = attribute(x, y);
+export function floorPreview(x: number, y: number, options: AttributionOptions = {}) {
+  const result = attribute(x, y, options);
   if (!result) return "Di luar jangkauan simpul";
   const names = result.secondary ? `Zona ${result.primary} dan ${result.secondary}` : `Zona ${result.primary}`;
   return `${names} · ΔL ${result.deltaDb.toFixed(1).replace(".", ",")} dB`;
@@ -106,9 +107,10 @@ const FloorCells = memo(function FloorCells({ zones, hatch }: { zones: RoomViewP
       </g>;
     })}
   </g>;
-});
+}, (previous, next) => previous.hatch === next.hatch && ZONES.every((id) =>
+  previous.zones[id].tier === next.zones[id].tier && previous.zones[id].nodeStatus === next.zones[id].nodeStatus));
 
-export function Denah2D({ zones, effects, packets, onFloorClick, onFloorHover }: RoomViewProps) {
+export function Denah2D({ zones, effects, packets, attribution, onFloorClick, onFloorHover }: RoomViewProps) {
   const id = useId().replaceAll(":", "");
   const hatch = `floor-hatch-${id}`;
   const reduced = useMediaQuery("(prefers-reduced-motion: reduce)");
@@ -192,7 +194,7 @@ export function Denah2D({ zones, effects, packets, onFloorClick, onFloorHover }:
       <p style={{ margin: "8px 0", fontSize: 12, color: "var(--ink-3)" }}>Menampilkan denah 2D. Simpul digantung di garis tengah pada tinggi 2 m. Simulator memakai medan bebas tanpa gema dan menentukan zona per batuk. Arsir: ΔL &lt; 1,5 dB atau simpul luring.</p>
       <ZoneLabels zones={zones} />
       <p role="tooltip" style={{ minHeight: 40, margin: 0, fontSize: 12, color: "var(--ink-2)" }}>
-        {hover ? <>{floorPreview(...hover)}<br />Klik untuk memperagakan batuk di sini</> : "Klik lantai atau gunakan tombol batuk per zona pada halaman."}
+        {hover ? <>{floorPreview(...hover, { activeZones: ZONES.filter((zone) => zones[zone].nodeStatus === "normal"), ...attribution })}<br />Klik untuk memperagakan batuk di sini</> : "Klik lantai atau gunakan tombol batuk per zona pada halaman."}
       </p>
     </figcaption>
   </figure>;

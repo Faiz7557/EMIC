@@ -54,7 +54,7 @@ function RoomCanvas(props: RoomViewProps & { createStage: typeof createRoomStage
   }, [props.createStage]);
   useEffect(() => { stage.current?.update(viewProps()); }, [props.zones, props.effects, props.packets]);
   return <figure style={{ margin: 0 }}>
-    <div style={{ position: "relative", height: "clamp(360px, 44vw, 560px)", minWidth: 0 }}>
+    <div className="room-canvas" style={{ position: "relative", minWidth: 0 }}>
       <canvas ref={canvas} role="img" aria-label="Sketsa ruang tunggu 3D. Klik lantai untuk memperagakan batuk, geser untuk memutar kamera. Aksi batuk juga tersedia melalui tombol zona pada halaman."
         style={{ display: "block", width: "100%", height: "100%", touchAction: "pan-y" }} />
       {!ready && <div role="status" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", pointerEvents: "none", color: "var(--ink-3)" }}>Menyiapkan sketsa ruang…</div>}
@@ -67,7 +67,7 @@ function RoomCanvas(props: RoomViewProps & { createStage: typeof createRoomStage
         })}
       </div>
       {hover && <div role="tooltip" style={{ position: "absolute", bottom: 12, left: 12, right: 12, width: "fit-content", maxWidth: "calc(100% - 24px)", padding: "8px 12px", borderRadius: 7, background: "var(--panel)", color: "var(--ink-2)", boxShadow: "var(--shadow-float)", fontSize: 12, pointerEvents: "none" }}>
-        {floorPreview(...hover)}<br />Klik untuk memperagakan batuk di sini
+        {floorPreview(...hover, { activeZones: ZONES.filter((zone) => props.zones[zone].nodeStatus === "normal"), ...props.attribution })}<br />Klik untuk memperagakan batuk di sini
       </div>}
     </div>
     <figcaption style={{ padding: "0 16px 12px" }}>
