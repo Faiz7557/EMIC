@@ -44,7 +44,7 @@ function SessionCard({ mini = false }: { mini?: boolean }) {
   const { state } = useSim();
   const elapsed = Math.floor(state.nowMs / 1000) + state.cfg.startClockMin * 60;
   const time = [Math.floor(elapsed / 3600) % 24, Math.floor(elapsed / 60) % 60, elapsed % 60].map((part) => String(part).padStart(2, "0")).join(":");
-  const count = new Set(state.log.filter((entry) => entry.kind === "BATUK").map((entry) => entry.tMs)).size;
+  const count = state.counters.coughEvents;
   if (mini) return <div className="session-mini" title={`Jam simulasi ${time}. ${count} kejadian. Audio keluar ${state.counters.audioBytesOut} byte.`}>
     <Clock3 size={18} aria-hidden="true" /><span className="sr-only">Sesi ini: {time}, {count} kejadian, audio keluar {state.counters.audioBytesOut} byte.</span>
   </div>;
@@ -63,6 +63,7 @@ export function Shell({ children, path, demoRequested = false }: { children: Rea
   const [mini, setMini] = useState(false);
   const [demoDismissed, setDemoDismissed] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
+  useEffect(() => { if (path !== "/") setDemoOpen(false); }, [path]);
   const startDemo = () => { setDemoDismissed(true); window.location.hash = "#/"; setDemoOpen(true); };
   const drawer = useRef<HTMLDialogElement>(null);
   const menuButton = useRef<HTMLButtonElement>(null);

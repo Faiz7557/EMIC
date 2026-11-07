@@ -31,7 +31,7 @@ export function createInitialState(cfg: Partial<SimConfig> = {}): SimState {
     zones: Object.fromEntries(ZONES.map((zone) => [zone, initialZone()])) as SimState["zones"],
     packets: [], log: [], effects: [], pagerBuzzing: false, pendingGroups: [],
     seq: { A: 0, B: 0, C: 0, D: 0 },
-    counters: { audioBytesOut: 0, eventPackets: 0, speechIgnored: 0, mergedCoughs: 0 }, lastMerge: null,
+    counters: { audioBytesOut: 0, eventPackets: 0, speechIgnored: 0, mergedCoughs: 0, coughEvents: 0, alertEvents: 0 }, lastMerge: null,
   };
 }
 
@@ -195,6 +195,7 @@ function detectCough(state: SimState, x: number, y: number, radios: Radios): voi
   }
   const group = (state.log.at(-1)?.id ?? 0) + 1;
   state.lastMerge = { tMs: state.nowMs, group, zones: affected };
+  state.counters.coughEvents++;
   const alerted: ZoneId[] = [];
   for (const zone of affected) {
     const current = state.zones[zone];
@@ -218,6 +219,7 @@ function detectCough(state: SimState, x: number, y: number, radios: Radios): voi
     }
   }
   if (alerted.length) {
+    state.counters.alertEvents++;
     state.pendingGroups.push(group);
     state.pagerBuzzing = true;
     packet(state, "ALERT", "A", "PAGER");

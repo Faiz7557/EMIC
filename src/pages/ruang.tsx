@@ -1,4 +1,4 @@
-﻿import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CLAIMS } from "../data/claims";
 import { copy } from "../data/copy";
 import { morningScenario } from "../sim/scenario";
@@ -85,6 +85,8 @@ export default function Ruang() {
     mergedCoughs.current = state.counters.mergedCoughs;
   }, [state.counters.mergedCoughs]);
 
+  useEffect(() => { if (!running && !state.log.length) setScenarioMessage(""); }, [running, state.log.length]);
+
   const last = state.log[state.log.length - 1];
   useEffect(() => {
     const effect = state.effects[state.effects.length - 1];
@@ -101,8 +103,8 @@ export default function Ruang() {
   }, [state.log]);
   const median = responses.length ? (responses[Math.floor((responses.length - 1) / 2)] + responses[Math.floor(responses.length / 2)]) / 2 : null;
   const latestResponse = [...state.log].reverse().find((entry) => entry.kind === "DITANGANI");
-  const coughs = new Set(state.log.filter((entry) => entry.kind === "BATUK").map((entry) => entry.tMs)).size;
-  const alerts = new Set(state.log.filter((entry) => entry.kind === "TINGKAT2").map((entry) => entry.tMs)).size;
+  const coughs = state.counters.coughEvents;
+  const alerts = state.counters.alertEvents;
   const liveStatus = ZONES.map((id) => {
     const zone = state.zones[id];
     const tier = zone.tier === "menunggu" ? `Tingkat 2, ${zone.rebuzzCount ? "eskalasi" : "menunggu tindakan"}` : zone.tier === "tingkat1" ? "Tingkat 1, ajakan" : zone.tier === "ditangani" ? "Ditangani" : "Normal";
@@ -112,7 +114,7 @@ export default function Ruang() {
   return <>
     <PageHead title="Apa yang terjadi saat seseorang batuk?" answer={<>Ambang lama menangkap <Em>{CLAIMS.captureOld.tampil}</Em> <ClaimTag claim={CLAIMS.captureOld} /> pasien median. Dua tingkat memberi sinyal pada <Em>{CLAIMS.anySignal.tampil}</Em> <ClaimTag claim={CLAIMS.anySignal} /> dan memanggil petugas pada <Em>{CLAIMS.captureTier2.tampil}</Em> <ClaimTag claim={CLAIMS.captureTier2} />, dengan <Em>{CLAIMS.falseAlarmWithPause.tampil}</Em> <ClaimTag claim={CLAIMS.falseAlarmWithPause} /> alarm palsu per jam per ruang dengan jeda pemicu ulang 15 menit. Hasil simulasi, belum diukur.</>} actions={<button type="button" className="button button-quiet" onClick={resetRoom}>Reset ruang</button>} />
     <div aria-live="polite" aria-atomic="true" className="sr-only">{liveStatus} Percakapan diabaikan: {state.counters.speechIgnored}. {notice} {scenarioMessage}</div>
-    <div className="room-time-controls" role="group" aria-label="Kontrol waktu dan skenario">
+    <div className="room-time-controls" data-scenario-running={running} role="group" aria-label="Kontrol waktu dan skenario">
         <button type="button" className="button" onClick={running ? stopScenario : playScenario}>{running ? "Hentikan skenario" : "Putar skenario pagi"}</button>
         <label style={{ display: "inline-flex", alignItems: "center", gap: 8, minHeight: 44 }}><input type="checkbox" checked={busy} disabled={running} onChange={(event) => setBusy(event.target.checked)} />Petugas sibuk</label>
         <time style={{ fontFamily: "var(--font-mono)", fontSize: 20, fontWeight: 600 }}>{formatSimTime(state.nowMs, state.cfg.startClockMin)}</time>

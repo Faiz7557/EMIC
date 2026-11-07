@@ -310,7 +310,7 @@ describe("node radio, privacy, and reducer integrity", () => {
 
   test("speech produces only its visual effect and ignored counter", () => {
     const state = reduce(createInitialState(), { type: "speech", zone: "C" });
-    expect(state.counters).toEqual({ audioBytesOut: 0, eventPackets: 0, speechIgnored: 1, mergedCoughs: 0 });
+    expect(state.counters).toEqual({ audioBytesOut: 0, eventPackets: 0, speechIgnored: 1, mergedCoughs: 0, coughEvents: 0, alertEvents: 0 });
     expect(state.packets).toEqual([]);
     expect(state.log).toEqual([]);
     expect(state.effects).toMatchObject([{ kind: "speech", zones: ["C"] }]);
@@ -373,4 +373,22 @@ test("floor preview respects active radios, ambiguity threshold and range like t
   expect(floorPreview(6.25, 2.5, { ...options, ambiguousDb: 1.5 })).toContain("Zona B dan D");
   expect(floorPreview(6.25, 2.5, { ...options, maxRangeM: 1 })).toBe("Di luar jangkauan simpul");
   expect(floorPreview(6.25, 2.5, { ...options, activeZones: [] })).toBe("Di luar jangkauan simpul");
+});
+
+test("kejadian dihitung per kelompok, bukan per stempel waktu", () => {
+  let state = createInitialState();
+  state = reduce(state, { type: "coughZone", zone: "A" });
+  state = reduce(state, { type: "coughZone", zone: "D" });
+  expect(state.counters.coughEvents).toBe(2);
+  expect(reduce(state, { type: "coughZone", zone: "D" }).counters.coughEvents).toBe(2);
+
+  state = reduce(state, { type: "tick", dtMs: 60000 });
+  state = reduce(state, { type: "coughZone", zone: "A" });
+  state = reduce(state, { type: "coughZone", zone: "D" });
+  expect(state.counters.coughEvents).toBe(4);
+  expect(state.counters.alertEvents).toBe(2);
+
+  const ambiguous = reduce(createInitialState(), { type: "cough", x: 2.5, y: 2.5 });
+  expect(ambiguous.zones.A.totalCoughs + ambiguous.zones.B.totalCoughs).toBe(2);
+  expect(ambiguous.counters.coughEvents).toBe(1);
 });

@@ -71,7 +71,7 @@ function PacketInspector({ packet }: { packet?: PacketTrace }) {
 }
 
 const STAGES = ["Mikrofon", "Buffer 1 detik", "Log-mel", "CNN", "Keputusan", "Batas audio", "Paket metadata"];
-interface Trial { input: "speech" | "cough"; events: number; generation: number; phase: number }
+interface Trial { merged: boolean; input: "speech" | "cough"; events: number; generation: number; phase: number }
 
 function SyntheticBuffer({ trial }: { trial: Trial | null }) {
   const shift = (trial?.generation ?? 0) * 0.5;
@@ -93,7 +93,7 @@ function SyntheticBuffer({ trial }: { trial: Trial | null }) {
 }
 
 export default function BatasAudio() {
-  const { state, dispatch } = useSim();
+  const { state, dispatch, paused, setPaused } = useSim();
   const [packetId, setPacketId] = useState<number | null>(null);
   const [trial, setTrial] = useState<Trial | null>(null);
   const lastPacket = state.packets.at(-1);
@@ -117,7 +117,7 @@ export default function BatasAudio() {
     const action = input === "speech" ? { type: "speech", zone: "A" } as const : { type: "cough", x: 0, y: 0 } as const;
     const next = reduce(state, action);
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setTrial((previous) => ({ input, events: next.counters.eventPackets - state.counters.eventPackets,
+    setTrial((previous) => ({ input, events: next.counters.eventPackets - state.counters.eventPackets, merged: next.counters.mergedCoughs > state.counters.mergedCoughs,
       generation: (previous?.generation ?? 0) + 1, phase: reducedMotion ? STAGES.length - 1 : 0 }));
     if (input === "cough") {
       const event = next.packets.find((item) => item.kind === "EVENT" && item.id > (lastPacket?.id ?? 0));
@@ -148,15 +148,16 @@ export default function BatasAudio() {
           <span className="muted">Percobaan di sudut zona A · memakai sesi simulasi yang sama</span>
         </div>
         {state.zones.A.nodeStatus !== "normal" && <p className="page-note">Simpul A berstatus Terbatas. Pulihkan simpul melalui Ruang tunggu atau reset sesi untuk mencoba batuk.</p>}
+        {paused && <p className="page-note">Jam simulasi sedang dijeda, sehingga batuk berulang di zona yang sama digabung. <button type="button" className="button button-quiet" onClick={() => setPaused(false)}>Lanjutkan jam</button></p>}
         <p className="audio-result" role="status">{trial
-          ? `${trial.input === "speech" ? "Percakapan: bukan batuk" : "Batuk"}. Tambahan ${trial.events} paket EVENT. ${running ? `Ilustrasi: ${STAGES[trial.phase]}.` : "Buffer lama ditimpa; hanya metadata yang keluar."}`
+          ? trial.merged ? "Disatukan dengan batuk sebelumnya, tidak ada paket baru." : `${trial.input === "speech" ? "Percakapan: bukan batuk" : "Batuk"}. Tambahan ${trial.events} paket EVENT. ${running ? `Ilustrasi: ${STAGES[trial.phase]}.` : "Buffer lama ditimpa; hanya metadata yang keluar."}`
           : "Pilih Percakapan atau Batuk untuk membandingkan paket yang dihasilkan."}</p>
         <dl className="audio-counts">
           <div><dt>EVENT selama sesi</dt><dd>{state.counters.eventPackets}</dd></div>
           <div><dt>Percakapan diabaikan</dt><dd>{state.counters.speechIgnored}</dd></div>
           <div><dt>Audio keluar · dirancang</dt><dd>{state.counters.audioBytesOut} byte <ClaimTag claim={CLAIMS.audioOut} /></dd></div>
         </dl>
-        <p className="page-note">Percakapan menambah 0 paket EVENT. Batuk pada titik ini mengirim satu EVENT dari simpul A, diikuti ACK; sinyal Tingkat 2 juga dapat mengirim ALERT. Lalu lintas SYNC dan HEARTBEAT tetap berjalan. conf bernilai contoh 230, bukan hasil CNN.</p>
+        <p className="page-note">Percakapan menambah 0 paket EVENT. Batuk pada titik ini mengirim satu EVENT dari simpul A, diikuti ACK, kecuali digabung dengan batuk sebelumnya dalam 300 ms waktu simulasi; sinyal Tingkat 2 juga dapat mengirim ALERT. Lalu lintas SYNC dan HEARTBEAT tetap berjalan. conf bernilai contoh 230, bukan hasil CNN.</p>
       </div>
     </Panel>
     <div className="audio-actions">

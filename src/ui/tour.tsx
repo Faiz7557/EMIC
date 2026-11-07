@@ -10,7 +10,8 @@ type Rect = { x: number; y: number; w: number; h: number };
 /** Caliber's spotlight adapted to the local engine and keyboard-operated targets. */
 export function Tour({ onClose }: { onClose: () => void }) {
   const { dispatch, reset, paused, setPaused, setSpeed } = useSim();
-  const wasPaused = useRef(paused);
+  // A running scenario pauses the provider clock itself; that is not a user pause to restore.
+  const wasPaused = useRef(paused && !document.querySelector('[data-scenario-running="true"]'));
   const enteredStep = useRef<number | null>(null);
   const [index, setIndex] = useState(0);
   const [ready, setReady] = useState(false);

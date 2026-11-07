@@ -138,8 +138,8 @@ export function createRoomStage(canvas: HTMLCanvasElement, labels: HTMLElement, 
     if (reduced) { for (let i = animations.length - 1; i >= 0; i--) clearAnimation(i); pipe.setMoving(false); pipe.invalidate(); }
   };
   media.addEventListener("change", onReduced);
-  const orbit = { yaw: 0.12, pitch: 0.64, distance: 15.2 };
-  const target = new THREE.Vector3(0.6, 0.95, 0);
+  const orbit = { yaw: 0.12, pitch: 0.64, distance: 13.2 };
+  const target = new THREE.Vector3(0.3, 0.75, 0);
   const projected = new THREE.Vector3();
   const place = () => {
     // Fit the same room on a narrower canvas without cropping either floor corner.

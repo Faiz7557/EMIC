@@ -19,10 +19,10 @@ export default function Bukti() {
     <Panel>
       <PanelHead title="Janji dan status bukti hari ini" />
       <div className="panel-body">
-        <p>Belum ada baris yang berstatus terukur. Status berikut mengikuti Tabel janji pada Bab V proposal.</p>
+        <p>Belum ada baris yang berstatus terukur. Status berikut mengikuti Tabel janji pada Bab VI proposal.</p>
         <div className="overflow-x-auto" role="region" aria-label="Tabel janji proposal" tabIndex={0}>
           <table className="w-full min-w-[620px] text-left">
-            <caption className="sr-only">Tujuh janji, ukuran pembukti, dan status hari ini dari Bab V proposal</caption>
+            <caption className="sr-only">Tujuh janji, ukuran pembukti, dan status hari ini dari Bab VI proposal</caption>
             <thead><tr>{["Janji kepada pengguna", "Ukuran pembukti", "Status hari ini"].map((title) => <th key={title} scope="col" className="p-3 align-top">{title}</th>)}</tr></thead>
             <tbody>{promises.map((promise) => <tr key={promise.janji} className="border-t border-line">
               <th scope="row" className="p-3 align-top font-medium">{promise.janji}</th>
@@ -31,7 +31,7 @@ export default function Bukti() {
             </tr>)}</tbody>
           </table>
         </div>
-        <p className="page-note">Sumber: proposal Bab V, “Janji, ukuran pembukti, dan status buktinya hari ini”.</p>
+        <p className="page-note">Sumber: proposal Bab VI, “Janji, ukuran pembukti, dan status buktinya hari ini”.</p>
         <p className="page-note">Alarm {CLAIMS.falseAlarmWithPause.tampil} per jam memakai jeda pemicu ulang 15 menit. Zona benar tertandai {CLAIMS.taggedZone.tampil} berasal dari model gema proposal, level 50 ms awal dan rata-rata dua batuk; angka ini bukan keluaran engine medan bebas. <ClaimTag claim={CLAIMS.taggedZone} /></p>
       </div>
     </Panel>
