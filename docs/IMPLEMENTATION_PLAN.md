@@ -355,7 +355,7 @@ Setelah perbaikan, jalankan inspeksi baru bila waktu cukup, maksimal 2 inspeksi.
 - **Penerimaan:** setiap butir tertutup, tanpa fitur baru. Uji lama tidak dilonggarkan.
 - **Bukti:** `npm run check`
 
-Anggaran inspeksi Claudex sudah habis, yaitu dua inspeksi. Perubahan T22 dilaporkan sebagai belum diinspeksi secara independen, kecuali tim meminta inspeksi tambahan.
+Batas pemakaian Codex tercapai pada T22, sehingga Opus mengambil alih dan Codex menginspeksi hasilnya dalam sesi baru. Dua temuan medium dikerjakan pada `docs/work-orders/T23.md`. Perubahan T23 tidak melewati inspeksi independen lagi.
 
 ### T15 QA visual (Opus)
 
