@@ -1,13 +1,13 @@
 import { analysis2 } from "./analysis";
 import { CLAIMS } from "./claims";
 
-/** Proposal Bab V, tabel gerbang. Semua kriteria masih target, belum hasil uji. */
+/** Proposal Bab V, tabel tahap pengujian. Semua kriteria masih target, belum hasil uji. */
 export const gates = [
   { id: "G1", title: "Uji komponen", uji: `≥500 batuk diputar di perangkat dan ≥${analysis2.g1_hours_for_claim} jam audio negatif disuntikkan`, kriteria: "Sensitivitas ≥90% dan batas bawah ≥85%; alarm palsu kejadian ≤1,03/jam; inferensi ≤100 ms; 0 byte audio keluar", bilaGagal: "Perbesar model atau data; turunkan klaim" },
   { id: "G2", title: "Uji integrasi", uji: "4 simpul dan pager, 24 jam, listrik dan radio diganggu", kriteria: "Pemicu sampai pager ≤10 detik; pengiriman ≥99%; pulih otomatis", bilaGagal: "Perbaiki protokol dan kirim ulang" },
   { id: "G3", title: "Uji sistem", uji: "Ruang simulasi, wawancara 8 sampai 12 informan", kriteria: "Zona benar tertandai ≥80%; alarm palsu Tingkat 2 ≤1/jam; pasang ≤15 menit; SUS ≥68", bilaGagal: "Kalibrasi ulang ambang, tata letak, kata-kata papan" },
   { id: "G4", title: "Uji pilot", uji: "1 ruang tunggu, 1 minggu senyap dan 2 minggu aktif, setelah izin dan persetujuan etik", kriteria: "Respons median ≤3 menit; proporsi pasien batuk bermasker naik dari baseline; tanpa keluhan privasi serius", bilaGagal: "Hentikan perluasan; tinjau alur" },
-].map((gate) => ({ ...gate, status: "target" as const, sumber: "reference/proposal-content.py · Bab V · tabel gerbang" }));
+].map((gate) => ({ ...gate, status: "target" as const, sumber: "reference/proposal-content.py · Bab V · tabel tahap pengujian" }));
 
 /** Proposal Bab VI, tabel janji; belum ada baris berstatus terukur. */
 export const promises = [

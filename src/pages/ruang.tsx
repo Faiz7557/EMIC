@@ -147,7 +147,7 @@ export default function Ruang() {
                 const requested = [...state.log].reverse().find((entry) => entry.zone === zone && entry.kind === "STATUS_SIMPUL")?.status ?? state.zones[zone].nodeStatus;
                 return <label key={zone} style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
                   Simpul {zone}<select value={requested} aria-describedby={zone === "A" ? "coordinator-note" : undefined} onChange={(event) => dispatch({ type: "setNode", zone, status: event.target.value as NodeStatus })} style={{ minHeight: 44, padding: 8, background: "var(--panel-2)", border: "1px solid var(--line-2)", borderRadius: 7 }}>
-                    <option value="normal">Normal</option><option value="terbatas">Bising · Terbatas</option><option value="luring" disabled={zone === "A"}>Luring</option>
+                    <option value="normal">Normal</option><option value="terbatas">Pendengaran terbatas</option><option value="luring" disabled={zone === "A"}>Luring</option>
                   </select>
                 </label>;
               })}
