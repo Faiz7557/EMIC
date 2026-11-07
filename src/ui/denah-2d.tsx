@@ -1,7 +1,7 @@
 import { memo, useEffect, useId, useRef, useState, type PointerEvent } from "react";
 import { Bell, BellRing, CircleCheck, EarOff, HandHelping, Megaphone, WifiOff } from "lucide-react";
 import { attrib } from "../../reference/analysis.json";
-import { attribute } from "../sim/attribution";
+import { attribute, DEFAULT_AMBIGUOUS_DB } from "../sim/attribution";
 import { ZONES, type Endpoint, type PacketTrace, type SimEffect, type ZoneId, type ZoneState } from "../sim/types";
 
 export interface RoomViewProps {
@@ -35,7 +35,7 @@ export function zoneAppearance(zone: ZoneState) {
   return { label: "Normal", color: "#156b6b", fill: "#e6f3ef", Icon: CircleCheck };
 }
 
-/** Golden-cell preview only: exact attribution is owned by the missing T03 module.
+/** Exact preview from the same attribution model as the engine.
  * Never uses this preview to choose a status or to alter callback coordinates. */
 export function floorPreview(x: number, y: number) {
   const result = attribute(x, y);
@@ -102,7 +102,7 @@ const FloorCells = memo(function FloorCells({ zones, hatch }: { zones: RoomViewP
       const fill = zone.nodeStatus === "normal" && zone.tier === "normal" ? FLOOR_TINTS[primary] : zoneAppearance(zone).fill;
       return <g key={index} data-floor-cell={index}>
         <rect x={x - 0.125} y={y - 0.125} width={0.25} height={0.25} fill={fill} />
-        {(deltaDb < 3 || zone.nodeStatus === "luring") && <rect x={x - 0.125} y={y - 0.125} width={0.25} height={0.25} fill={`url(#${hatch})`} />}
+        {(deltaDb < DEFAULT_AMBIGUOUS_DB || zone.nodeStatus === "luring") && <rect x={x - 0.125} y={y - 0.125} width={0.25} height={0.25} fill={`url(#${hatch})`} />}
       </g>;
     })}
   </g>;
@@ -156,7 +156,7 @@ export function Denah2D({ zones, effects, packets, onFloorClick, onFloorHover }:
       onPointerCancel={() => { press.current = null; }} onLostPointerCapture={() => { press.current = null; }}
       onPointerLeave={() => setHover(null)} style={{ display: "block", width: "100%", height: "auto", touchAction: "pan-y", cursor: "crosshair" }}>
       <title id={`floor-title-${id}`}>Denah ruang tunggu 10 × 5 meter, zona A sampai D</title>
-      <desc id={`floor-desc-${id}`}>Klik lantai untuk memperagakan batuk. Dengan keyboard, gunakan tombol batuk per zona pada halaman. Arsir menandai sel dengan selisih level di bawah 3 dB. Titik asal berada di kiri atas.</desc>
+      <desc id={`floor-desc-${id}`}>Klik lantai untuk memperagakan batuk. Dengan keyboard, gunakan tombol batuk per zona pada halaman. Arsir menandai sel dengan ΔL &lt; 1,5 dB atau simpul luring. Titik asal berada di kiri atas.</desc>
       <defs><pattern id={hatch} width={0.12} height={0.12} patternUnits="userSpaceOnUse"><path d="M-.03 .03L.03 -.03M0 .12L.12 0M.09 .15L.15 .09" stroke="#5f6e82" strokeWidth={0.012} opacity={0.5} /></pattern></defs>
       <FloorCells zones={zones} hatch={hatch} />
       <g pointerEvents="none">
@@ -189,7 +189,7 @@ export function Denah2D({ zones, effects, packets, onFloorClick, onFloorHover }:
       </g>
     </svg>
     <figcaption>
-      <p style={{ margin: "8px 0", fontSize: 12, color: "var(--ink-3)" }}>Menampilkan denah 2D. Logikanya sama. Arsir: ΔL &lt; 3 dB.</p>
+      <p style={{ margin: "8px 0", fontSize: 12, color: "var(--ink-3)" }}>Menampilkan denah 2D. Simpul digantung di garis tengah pada tinggi 2 m. Simulator memakai medan bebas tanpa gema dan menentukan zona per batuk. Arsir: ΔL &lt; 1,5 dB atau simpul luring.</p>
       <ZoneLabels zones={zones} />
       <p role="tooltip" style={{ minHeight: 40, margin: 0, fontSize: 12, color: "var(--ink-2)" }}>
         {hover ? <>{floorPreview(...hover)}<br />Klik untuk memperagakan batuk di sini</> : "Klik lantai atau gunakan tombol batuk per zona pada halaman."}

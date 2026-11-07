@@ -1,4 +1,4 @@
-import { analysis, LATENCY_TOTAL_MS } from "./analysis";
+import { analysis, analysis2, LATENCY_TOTAL_MS } from "./analysis";
 import { bomTotals } from "./bom";
 
 export const CLAIM_STATUSES = ["terhitung", "tersimulasi", "target", "dirancang", "asumsi", "ilustratif"] as const;
@@ -15,6 +15,7 @@ export interface Claim {
   sumber: string;
   nilai: number;
   analysisPath?: readonly string[];
+  analysisFile?: "analysis.json" | "analysis2.json";
   format?: "percent" | "decimal2";
 }
 
@@ -45,8 +46,50 @@ export const CLAIMS = {
   falseAlarmTier2: {
     id: "false-alarm-tier2", nilai: analysis.grid["2_15"].fa_room_h,
     tampil: decimal2(analysis.grid["2_15"].fa_room_h), status: "tersimulasi",
-    sumber: "reference/analysis.json · grid.2_15.fa_room_h · per jam per ruang",
+    sumber: "reference/analysis.json · grid.2_15.fa_room_h · orde pertama, tanpa jeda pemicu ulang · per jam per ruang",
     analysisPath: ["grid", "2_15", "fa_room_h"], format: "decimal2",
+  },
+  falseAlarmWithPause: {
+    id: "false-alarm-with-pause", nilai: analysis2.alarm.sim[2],
+    tampil: decimal2(analysis2.alarm.sim[2]), status: "tersimulasi",
+    sumber: "reference/analysis2.json · alarm.sim[2] · ≥2/15, jeda pemicu ulang 15 menit, 1,03 suara palsu/jam/zona · per jam per ruang",
+    analysisFile: "analysis2.json", analysisPath: ["alarm", "sim", "2"], format: "decimal2",
+  },
+  capturePopulation: {
+    id: "capture-population", nilai: analysis2.pop["0.0"].capture,
+    tampil: percent(analysis2.pop["0.0"].capture), status: "tersimulasi",
+    sumber: "reference/analysis2.json · pop.0.0.capture · Tingkat 2 ≥2/15, seluruh sebaran pasien, waktu tunggu 60 menit",
+    analysisFile: "analysis2.json", analysisPath: ["pop", "0.0", "capture"], format: "percent",
+  },
+  taggedZone: {
+    id: "tagged-zone", nilai: analysis2.attrib_gap["1.5"].tagged,
+    tampil: percent(analysis2.attrib_gap["1.5"].tagged), status: "tersimulasi",
+    sumber: "reference/analysis2.json · attrib_gap.1.5.tagged · model gema, level 50 ms awal, rata-rata dua batuk, simpul gantung di garis tengah, ΔL < 1,5 dB · bukan hasil engine medan bebas",
+    analysisFile: "analysis2.json", analysisPath: ["attrib_gap", "1.5", "tagged"], format: "percent",
+  },
+  dosePopulationLow: {
+    id: "dose-population-low", nilai: analysis2.pop["0.0"].dose_red,
+    tampil: percent(analysis2.pop["0.0"].dose_red), status: "tersimulasi",
+    sumber: "reference/analysis2.json · pop.0.0.dose_red · seluruh sebaran pasien, kepatuhan ajakan Tingkat 1 0%",
+    analysisFile: "analysis2.json", analysisPath: ["pop", "0.0", "dose_red"], format: "percent",
+  },
+  dosePopulationHigh: {
+    id: "dose-population-high", nilai: analysis2.pop["0.5"].dose_red,
+    tampil: percent(analysis2.pop["0.5"].dose_red), status: "tersimulasi",
+    sumber: "reference/analysis2.json · pop.0.5.dose_red · seluruh sebaran pasien, kepatuhan ajakan Tingkat 1 50%",
+    analysisFile: "analysis2.json", analysisPath: ["pop", "0.5", "dose_red"], format: "percent",
+  },
+  captureNoisy: {
+    id: "capture-noisy", nilai: analysis2.pop_n3.capture,
+    tampil: percent(analysis2.pop_n3.capture), status: "tersimulasi",
+    sumber: "reference/analysis2.json · pop_n3.capture · mode bising ≥3/15, seluruh sebaran pasien, waktu tunggu 60 menit",
+    analysisFile: "analysis2.json", analysisPath: ["pop_n3", "capture"], format: "percent",
+  },
+  falseAlarmNoisy: {
+    id: "false-alarm-noisy", nilai: analysis2.alarm.sim3[2],
+    tampil: decimal2(analysis2.alarm.sim3[2]), status: "tersimulasi",
+    sumber: "reference/analysis2.json · alarm.sim3[2] · mode bising ≥3/15, jeda pemicu ulang 15 menit, 1,03 suara palsu/jam/zona · per jam per ruang",
+    analysisFile: "analysis2.json", analysisPath: ["alarm", "sim3", "2"], format: "decimal2",
   },
   latency: {
     id: "latency", nilai: LATENCY_TOTAL_MS / 1000,

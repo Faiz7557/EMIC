@@ -72,7 +72,7 @@ function RoomCanvas(props: RoomViewProps & { createStage: typeof createRoomStage
     </div>
     <figcaption style={{ padding: "0 16px 12px" }}>
       <ZoneLabels zones={props.zones} />
-      <p style={{ margin: "8px 0", fontSize: 12, color: "var(--ink-3)" }}>Sketsa ruang 10 × 5 m. Simpul pada tinggi 2 m, digambar 2× agar terbaca. Arsir: ΔL &lt; 3 dB.</p>
+      <p style={{ margin: "8px 0", fontSize: 12, color: "var(--ink-3)" }}>Sketsa ruang 10 × 5 m. Simpul digantung di garis tengah pada tinggi 2 m, digambar 2× agar terbaca. Simulator memakai medan bebas tanpa gema dan menentukan zona per batuk. Arsir: ΔL &lt; 1,5 dB atau simpul luring.</p>
       <button type="button" className="button button-quiet" onClick={() => stage.current?.resetCamera()}>Atur ulang kamera</button>
     </figcaption>
   </figure>;

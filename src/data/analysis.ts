@@ -277,3 +277,72 @@ export const analysis = {
 export const ANALYSIS = analysis;
 export const LATENCY_TOTAL_MS = analysis.latency.reduce((sum, row) => sum + row[1], 0);
 export const RAM_TOTAL_KB = analysis.ram.reduce((sum, row) => sum + row[1], 0);
+
+// Exact subset of reference/analysis2.json; no population or acoustic model is rerun here.
+export const analysis2 = {
+  "pop": {
+    "0.0": {
+      "capture": 0.4903,
+      "any_signal": 0.8051,
+      "dose_red": 0.278294254799322
+    },
+    "0.27": {
+      "capture": 0.4850333333333333,
+      "any_signal": 0.8042666666666667,
+      "dose_red": 0.3139890790933446
+    },
+    "0.5": {
+      "capture": 0.4850333333333333,
+      "any_signal": 0.8042666666666667,
+      "dose_red": 0.3495129775426481
+    }
+  },
+  "pop_n3": {
+    "capture": 0.2614666666666667,
+    "any_signal": 0.8017333333333333,
+    "dose_red": 0.13864731594172552
+  },
+  "alarm": {
+    "sim": [
+      0.20166666666666666,
+      0.415,
+      0.7251111111111112,
+      1.2814444444444444,
+      1.9565555555555556,
+      3.261222222222222,
+      5.476555555555556
+    ],
+    "sim3": [
+      0.013,
+      0.037,
+      0.09444444444444444,
+      0.25666666666666665,
+      0.49966666666666665,
+      1.2065555555555556,
+      2.9707777777777777
+    ]
+  },
+  "attrib_gap": {
+    "1.0": {
+      "top1": 0.7651,
+      "tagged": 0.893825,
+      "two_zone": 0.4434
+    },
+    "1.5": {
+      "top1": 0.7651,
+      "tagged": 0.912775,
+      "two_zone": 0.58975
+    },
+    "2.0": {
+      "top1": 0.7651,
+      "tagged": 0.921475,
+      "two_zone": 0.701075
+    },
+    "3.0": {
+      "top1": 0.7651,
+      "tagged": 0.925575,
+      "two_zone": 0.8447
+    }
+  },
+  "g1_hours_for_claim": 35
+} as const;

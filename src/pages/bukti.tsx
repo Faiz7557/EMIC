@@ -1,5 +1,5 @@
 import { copy } from "../data/copy";
-import { CLAIM_STATUSES, CLAIM_STATUS_LABEL, type ClaimStatus } from "../data/claims";
+import { CLAIMS, CLAIM_STATUSES, CLAIM_STATUS_LABEL, type ClaimStatus } from "../data/claims";
 import { assumptions, gates, promises } from "../data/gates";
 import { ClaimTag } from "../ui/claim-tag";
 import { PageHead, Panel, PanelHead } from "../ui/ui";
@@ -22,7 +22,7 @@ export default function Bukti() {
         <p>Belum ada baris yang berstatus terukur. Status berikut mengikuti Tabel janji pada Bab VI proposal.</p>
         <div className="overflow-x-auto" role="region" aria-label="Tabel janji proposal" tabIndex={0}>
           <table className="w-full min-w-[620px] text-left">
-            <caption className="sr-only">Enam janji, ukuran pembukti, dan status hari ini dari Bab VI proposal</caption>
+            <caption className="sr-only">Tujuh janji, ukuran pembukti, dan status hari ini dari Bab VI proposal</caption>
             <thead><tr>{["Janji kepada pengguna", "Ukuran pembukti", "Status hari ini"].map((title) => <th key={title} scope="col" className="p-3 align-top">{title}</th>)}</tr></thead>
             <tbody>{promises.map((promise) => <tr key={promise.janji} className="border-t border-line">
               <th scope="row" className="p-3 align-top font-medium">{promise.janji}</th>
@@ -32,6 +32,7 @@ export default function Bukti() {
           </table>
         </div>
         <p className="page-note">Sumber: proposal Bab VI, “Janji, ukuran pembukti, dan status buktinya hari ini”.</p>
+        <p className="page-note">Alarm {CLAIMS.falseAlarmWithPause.tampil} per jam memakai jeda pemicu ulang 15 menit. Zona benar tertandai {CLAIMS.taggedZone.tampil} berasal dari model gema proposal, level 50 ms awal dan rata-rata dua batuk; angka ini bukan keluaran engine medan bebas. <ClaimTag claim={CLAIMS.taggedZone} /></p>
       </div>
     </Panel>
     <Panel>
@@ -63,7 +64,7 @@ export default function Bukti() {
       </dl>
     </Panel>
     <Panel>
-      <PanelHead title="Asumsi simulator A1 sampai A6" />
+      <PanelHead title="Asumsi simulator A1–A4, A6, dan A7" />
       <div className="panel-body space-y-5">
         {assumptions.map((assumption) => <article key={assumption.id}>
           <div className="flex flex-wrap items-center gap-2">

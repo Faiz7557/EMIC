@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { copy } from "../data/copy";
+import { DEFAULT_AMBIGUOUS_DB } from "../sim/attribution";
 import { ZONES, type SimEffect } from "../sim/types";
 import { endpointXY, FLOOR_CELLS, FLOOR_TINTS, NODE_XY, traceKey, zoneAppearance, type RoomViewProps } from "../ui/denah-2d";
 import { add, barrel, makeMats, rbox } from "./kit";
@@ -24,7 +25,7 @@ function groundTexture(zones: RoomViewProps["zones"]) {
       const left = (x - 0.125) * k; const top = (y - 0.125) * k; const size = 0.25 * k;
       context.fillStyle = zone.nodeStatus === "normal" && zone.tier === "normal" ? FLOOR_TINTS[primary] : zoneAppearance(zone).fill;
       context.fillRect(left, top, size + 0.5, size + 0.5);
-      if (deltaDb < 3 || zone.nodeStatus === "luring") {
+      if (deltaDb < DEFAULT_AMBIGUOUS_DB || zone.nodeStatus === "luring") {
         context.save(); context.beginPath(); context.rect(left, top, size, size); context.clip();
         context.strokeStyle = "#899c9c"; context.lineWidth = 1.4;
         context.beginPath();

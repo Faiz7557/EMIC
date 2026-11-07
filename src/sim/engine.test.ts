@@ -121,6 +121,29 @@ describe("scenario and time boundaries (TRD §5)", () => {
 });
 
 describe("cough groups and pager queue", () => {
+  test.each([
+    { x: 4.796920185194401, deltaDb: 2, zones: ["B"] },
+    { x: 4.898544968737428, deltaDb: 1, zones: ["B", "C"] },
+  ])("ΔL $deltaDb dB raises only the zones allowed by the 1.5 dB default", ({ x, zones }) => {
+    let state = createInitialState();
+    expect(DEFAULT_CONFIG.ambiguousDb).toBe(1.5);
+    expect(state.cfg.ambiguousDb).toBe(1.5);
+    state = reduce(state, { type: "cough", x, y: 2.5 });
+    expect(ZONES.filter((zone) => state.zones[zone].tier === "tingkat1")).toEqual(zones);
+    expect(state.log.filter((entry) => entry.kind === "BATUK").map((entry) => entry.zone)).toEqual(zones);
+    state = reduce(tick(state, 1000), { type: "cough", x, y: 2.5 });
+    expect(ZONES.filter((zone) => state.zones[zone].tier === "menunggu")).toEqual(zones);
+    expect(state.pendingGroups).toHaveLength(1);
+    expect(state.packets.filter((packet) => packet.kind === "ALERT")).toHaveLength(1);
+    expect(state.zones.C.totalCoughs).toBe(zones.includes("C") ? 2 : 0);
+  });
+
+  test("historical decision at 3 dB remains an explicit configuration override", () => {
+    const state = reduce(createInitialState({ ambiguousDb: 3 }), { type: "cough", x: 4.796920185194401, y: 2.5 });
+    expect(ZONES.filter((zone) => state.zones[zone].tier === "tingkat1")).toEqual(["B", "C"]);
+    expect(reduce(state, { type: "reset" }).cfg.ambiguousDb).toBe(3);
+  });
+
   test("one ambiguous cough updates two zones; the second creates one alert group", () => {
     let state = reduce(createInitialState(), { type: "cough", x: 5, y: 2.5 });
     expect([state.zones.B.tier, state.zones.C.tier]).toEqual(["tingkat1", "tingkat1"]);
