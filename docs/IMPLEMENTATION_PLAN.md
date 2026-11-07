@@ -1,6 +1,6 @@
 # Implementation Plan: SUAR Simulator
 
-Versi 1.4, 7 November 2026 pukul 19.40. Revisi ini mengikuti perubahan proposal setelah review Codex, sehingga approval SHA `3f69864a` hanya berlaku untuk versi 1.2. Dokumen ini adalah rencana yang direview melalui Claudex. Rujukan: [PRD](PRD.md), [TRD](TRD.md), [App Flow](APP_FLOW.md), [Design Brief](DESIGN_BRIEF.md).
+Versi 1.5, 7 November 2026 pukul 20.00. Revisi ini mengikuti perubahan proposal setelah review Codex, sehingga approval SHA `3f69864a` hanya berlaku untuk versi 1.2. Dokumen ini adalah rencana yang direview melalui Claudex. Rujukan: [PRD](PRD.md), [TRD](TRD.md), [App Flow](APP_FLOW.md), [Design Brief](DESIGN_BRIEF.md).
 
 ## 1. Tujuan dan penerimaan
 
@@ -341,6 +341,22 @@ Jalankan perintah inspeksi dengan `--base "$BASE"` dari T01. Fokus: kesesuaian d
 
 Setelah perbaikan, jalankan inspeksi baru bila waktu cukup, maksimal 2 inspeksi. Bila waktu tidak cukup, laporkan bahwa perubahan terakhir belum diinspeksi.
 
+### T22 Perbaikan inspeksi kedua
+
+- **Agen:** SOL Fix, effort high, timeout 1500 detik.
+- **Milik:** file pada daftar di bawah. Khusus tugas ini, `src/sim/types.ts` boleh berubah hanya untuk `counters.coughEvents` dan `counters.alertEvents`.
+- **Kerjakan:**
+  1. `src/sim/engine.ts`, `src/sim/types.ts`, `src/pages/ruang.tsx`, `src/ui/shell.tsx`: hitung kejadian batuk dan kejadian Tingkat 2 dengan penghitung engine `counters.coughEvents` dan `counters.alertEvents`, naik sekali per kelompok yang diterima. Jangan menghitung dari `tMs`. Tambah uji: saat jam dijeda, batuk di Zona A dan Zona D menghasilkan `coughEvents` 2. Satu batuk ambigu menghasilkan 1.
+  2. `src/pages/batas-audio.tsx`: saat `mergedCoughs` naik, tampilkan "Disatukan dengan batuk sebelumnya, tidak ada paket baru" dan jangan klaim paket baru. Bila jam dijeda, tampilkan keterangan itu dan tombol Lanjutkan jam. Pilih EVENT yang disorot dari state yang sudah diterapkan, dengan efek berkunci `counters.eventPackets`.
+  3. `src/pages/bukti.tsx`, `src/data/gates.ts`: rujukan tabel janji menjadi Bab VI. Rujukan gerbang tetap Bab V.
+  4. `src/three/room.ts`: rapatkan kamera bawaan agar lantai ruang 10 m mengisi minimal 80% lebar kanvas pada 1366 x 768. Tepi lantai dan label zona tidak terpotong. Meja petugas boleh terpotong sebagian.
+  5. `src/ui/tour.tsx`, `src/ui/shell.tsx`: saat demo ditutup setelah dibuka ketika skenario berjalan, jam tidak tertinggal dalam keadaan jeda. Demo ditutup saat rute meninggalkan `#/`, sehingga kembali ke `#/` tidak mereset sesi tanpa diminta.
+  6. `src/pages/ruang.tsx`: pesan skenario dikosongkan saat log kosong dan tidak ada skenario berjalan, termasuk setelah Reset di bilah atas.
+- **Penerimaan:** setiap butir tertutup, tanpa fitur baru. Uji lama tidak dilonggarkan.
+- **Bukti:** `npm run check`
+
+Anggaran inspeksi Claudex sudah habis, yaitu dua inspeksi. Perubahan T22 dilaporkan sebagai belum diinspeksi secara independen, kecuali tim meminta inspeksi tambahan.
+
 ### T15 QA visual (Opus)
 
 Jalankan `vite preview` dan browser bawaan. Periksa Design Brief subbab 12, alur App Flow, kasus tanpa WebGL, ukuran bundle, dan tidak ada permintaan jaringan selain file statis.
@@ -369,7 +385,7 @@ Tim tetap wajib meninjau isi karena ide dan konten utama harus hasil pemikiran p
 
 6. Tambah QR sebagai gambar kecil setelah itu.
 7. Jangan mengubah pernyataan "tanpa uji purwarupa" pada Status bukti.
-8. Perbarui laporan AI: simulator dibangun dengan bantuan Claude dan Codex.
+8. Perbarui laporan AI: simulator dibangun dengan bantuan Claude dan Codex. Ubah baris `Simulator web pendamping` pada tabel `l_fidel` di `script/lampiran2.py` dalam folder ini dari "Dalam pengembangan" menjadi "Tersedia sebagai peragaan web, lihat Lampiran P". Salinan cadangan tidak berubah.
 9. Jalankan dari `Semifinal/paper-lampiran-p/script`:
 
 ```bash

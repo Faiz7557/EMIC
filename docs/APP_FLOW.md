@@ -1,6 +1,6 @@
 # App Flow Document: SUAR Simulator
 
-Versi 1.0, 7 November 2026. Aturan logika ada di [TRD](TRD.md) subbab 5. Tampilan ada di [Design Brief](DESIGN_BRIEF.md).
+Versi 1.2, 7 November 2026. Aturan logika ada di [TRD](TRD.md) subbab 5. Tampilan ada di [Design Brief](DESIGN_BRIEF.md).
 
 ## 1. Peta aplikasi
 
@@ -34,7 +34,7 @@ Navigasi sisi kiri mengikuti tiga kelompok pertanyaan tersebut. Lencana SIMULASI
 1. Halaman `#/` tampil. Kerangka, judul, dan panel muncul lebih dulu, lalu ruang 3D menyusul.
 2. Muncul kalimat pembuka dengan angka dan labelnya.
 3. Bila tautan memuat `?demo=1`, kartu tawaran muncul: "Lihat SUAR bekerja dalam 1 menit" dengan tombol **Mulai** dan **Jelajahi sendiri**.
-4. Tanpa `?demo=1`, tombol mengambang "Demo 1 menit" tetap tersedia di kanan bawah.
+4. Tanpa `?demo=1`, tombol "Demo 1 menit" tetap tersedia di bilah atas.
 5. Pada lebar di bawah 768 px, atau tanpa WebGL, denah 2D menggantikan 3D. Pesan: "Menampilkan denah 2D. Logikanya sama."
 
 ## 3. Alur inti: satu kejadian

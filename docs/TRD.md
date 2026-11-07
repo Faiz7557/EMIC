@@ -1,6 +1,6 @@
 # Technical Requirements Document: SUAR Simulator
 
-Versi 1.0, 7 November 2026. Kebutuhan produk ada di [PRD](PRD.md), alur layar ada di [App Flow](APP_FLOW.md), tampilan ada di [Design Brief](DESIGN_BRIEF.md).
+Versi 1.2, 7 November 2026. Kebutuhan produk ada di [PRD](PRD.md), alur layar ada di [App Flow](APP_FLOW.md), tampilan ada di [Design Brief](DESIGN_BRIEF.md).
 
 ## 1. Arsitektur
 
@@ -148,8 +148,8 @@ export interface SimState {
   pagerBuzzing: boolean;
   pendingGroups: number[];  // kelompok peringatan, tertua di depan
   seq: Record<ZoneId, number>;
-  counters: { audioBytesOut: 0; eventPackets: number; speechIgnored: number };
-  lastMerge: { tMs: number; group: number } | null;
+  counters: { audioBytesOut: 0; eventPackets: number; speechIgnored: number; mergedCoughs: number; coughEvents: number; alertEvents: number };
+  lastMerge: { tMs: number; group: number; zones: ZoneId[] } | null;
 }
 
 export type SimAction =
@@ -205,7 +205,7 @@ Aturan pemicu mengikuti `first_trigger` pada `analysis.py`: `t[i] - t[i-N+1] <= 
 1. Aksi `cough(x, y)` memanggil `attribute`. Aksi `coughZone` memakai koordinat tengah zona, yaitu titik yang tepat berada di simpul zona tersebut.
 2. Simpul `terbatas` dan `luring` tidak melapor.
 3. Tiap simpul berjarak ≤ `maxRangeM` mengirim `EVENT`, disusul `ACK` dari koordinator. Selisih waktu antarlaporan 20 ms sehingga masih berada dalam `mergeMs`.
-4. Laporan disatukan menjadi satu kejadian. Dua batuk dalam `mergeMs` waktu simulasi dihitung satu.
+4. Laporan disatukan menjadi satu kejadian. Dua batuk dalam `mergeMs` waktu simulasi dihitung satu bila zonanya beririsan. Batuk yang digabung tidak menambah paket EVENT dan menaikkan `mergedCoughs`. Batuk di zona yang tidak beririsan adalah kejadian terpisah.
 5. Status diterapkan pada `primary`, dan pada `secondary` bila terisi.
 6. Bila tidak ada simpul yang melapor, tidak ada perubahan status. Log `STATUS_SIMPUL` mencatat zona terdekat.
 
@@ -330,7 +330,7 @@ Hash tidak dikenal kembali ke `#/`. Store berada di atas router, sehingga status
 
 - Tidak ada `getUserMedia`, `fetch`, `XMLHttpRequest`, `WebSocket`, `localStorage`, `sessionStorage`, atau `document.cookie` di `src/`.
 - Tidak ada `Math.random` atau `Date.now` di `src/sim/`.
-- `index.html` memuat CSP: `default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'`.
+- `index.html` memuat CSP: `default-src 'self'; font-src 'self' data:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'`.
 - Tidak ada `dangerouslySetInnerHTML`, karena tidak ada masukan teks dari pengguna.
 - Tidak ada rahasia, kunci API, atau variabel lingkungan.
 
